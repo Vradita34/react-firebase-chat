@@ -1,3 +1,108 @@
 .detail {
   flex: 1;
+  .user {
+    padding: 10px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    border-radius: 1px solid #dddddd35;
+
+    img {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    h2 {
+      font-size: 22px;
+    }
+
+    p {
+      font-size: 14px;
+    }
+  }
+
+  .info {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: -5px;
+
+    .option {
+      .title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        span {
+          font-size: 14px;
+        }
+
+        img {
+          width: 23px;
+          height: 23px;
+          background-color: rgba(17, 25, 40, 0.3);
+          padding: 4px;
+          border-radius: 50%;
+        }
+      }
+
+      .photos {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+        .photoItem {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          .photoDetail {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            img {
+              width: 40px;
+              height: 40px;
+              border-radius: 5px;
+              object-fit: cover;
+            }
+            span {
+              font-size: 12px;
+              color: lightgray;
+              font-weight: 300;
+            }
+          }
+
+          .iconDonwload {
+            width: 30px;
+            height: 30px;
+            background-color: rgba(17, 25, 40, 0.3);
+            padding: 5px;
+            border-radius: 50%;
+            cursoer: pointer;
+          }
+        }
+      }
+    }
+    button {
+      padding: 7px 15px;
+      background-color: rgba(230, 74, 105, 0.553);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: rgba(230, 10, 100, 1);
+      }
+
+      &.logout {
+        padding: 7px;
+        background-color: #1a73e8;
+      }
+    }
+  }
 }

@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   .top {
-    padding: 20px;
+    padding: 5px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -17,15 +17,15 @@
       gap: 20px;
 
       img {
-        width: 60px;
-        height: 60px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
         object-fit: cover;
       }
       .texts {
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 10px;
 
         .span {
           font-size: 18px;
@@ -44,19 +44,19 @@
       gap: 20px;
 
       img {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
       }
     }
   }
 
   .center {
-    padding: 20px;
+    padding: 10px;
     flex: 1;
     overflow: scroll;
     display: fkex;
     flex-direction: space-between;
-    gap: 20px;
+    gap: 10px;
 
     .message {
       max-width: 70%;
@@ -66,7 +66,7 @@
       &.own {
         max-width: 100%;
         align-self: flex-end;
-        margin-left: 300px;
+        margin-left: 200px;
 
         .texts {
           p {
@@ -107,17 +107,17 @@
   }
 
   .bottom {
-    padding: 20px;
+    padding: 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-top: 1px solid #dddddd35;
-    gap: 20px;
+    gap: 10px;
     margin-top: auto;
 
     .icons {
       display: flex;
-      gap: 20px;
+      gap: 15px;
     }
     img {
       width: 20px;
@@ -131,7 +131,7 @@
       border: none;
       outline: none;
       color: white;
-      padding: 13px;
+      padding: 10px;
       border-radius: 10px;
       font-size: 16px;
     }
