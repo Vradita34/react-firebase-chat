@@ -1,0 +1,31 @@
+.userinfo {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  img {
+    width: 50px; /* Atur ukuran gambar avatar */
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+
+.icons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icons img {
+  width: 20px;
+  height: 20px;
+  cursoer: pointer;
+}
