@@ -1,6 +1,23 @@
+
+import { toast } from 'react-toastify';
+import { auth } from '../../lib/firebase'
 import './detail.css'
 
 function Detail() {
+
+    const handleLogout = (e) => {
+        e.preventDefault()
+        auth.signOut()
+            .then(() => {
+                console.log('Logout successful');
+                toast.success("LogOut Successful!")
+            })
+            .catch((error) => {
+                console.error('Error logging out:', error);
+                toast.error(error.message)
+            });
+    };
+
     return (
         <div className='detail'>
             <div className="user">
@@ -57,7 +74,7 @@ function Detail() {
                     </div>
                 </div>
                 <button>Block User</button>
-                <button className='logout'>Log Out</button>
+                <button className='logout' onClick={handleLogout}>Log Out</button>
             </div>
         </div>
     )

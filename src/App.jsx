@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Chat from "./components/chat/Chat"
 import Detail from "./components/detail/Detail"
 import List from "./components/list/List"
@@ -14,17 +14,17 @@ const App = () => {
 
   useEffect(() => {
     const unSub = onAuthStateChanged(auth, (user) => {
-      fetchUserInfo(user.uid)
+      if (user) {
+        fetchUserInfo(user.uid);
+      }
     })
 
     return () => {
-      unSub()
+      unSub();
     }
   }, [fetchUserInfo])
 
-  console.log(currentUser)
-
-  if (isLoading) return <div className="loading">Loading...</div>
+  // if (isLoading) return <div className="loading">Loading...</div>
 
   return (
     <div className='container'>
@@ -42,4 +42,4 @@ const App = () => {
   )
 }
 
-export default App
+export default App;
