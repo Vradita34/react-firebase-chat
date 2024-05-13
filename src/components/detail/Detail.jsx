@@ -11,6 +11,9 @@ function Detail() {
             .then(() => {
                 console.log('Logout successful');
                 toast.success("LogOut Successful!")
+
+                // sementara, puyeng, diakalisek
+                window.location.href = "/";
             })
             .catch((error) => {
                 console.error('Error logging out:', error);
