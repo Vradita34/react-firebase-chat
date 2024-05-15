@@ -1,11 +1,14 @@
-import { collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore'
+import { arrayUnion, collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore'
 import './addUser.css'
 import { db } from '../../../../lib/firebase'
 import { useState } from 'react'
+import { useUserStore } from '../../../../lib/userStore'
 
 const AddUser = () => {
 
     const [user, setUser] = useState(null)
+
+    const { currentUser } = useUserStore()
 
     const handleSearch = async (e) => {
         e.preventDefault()
@@ -40,12 +43,32 @@ const AddUser = () => {
                 messages: []
             });
 
+            // Perbarui userChat untuk currentUser
+            await updateDoc(doc(userChatRef, currentUser.id), {
+                chats: arrayUnion({
+                    chatId: newChatRef.id,
+                    lastMessage: "",
+                    receiverId: user.id,
+                    updateAt: Date.now(), // Gunakan Date.now() untuk mendapatkan waktu server
+                })
+            });
 
-            console.log("New chat created:", newChatRef.id);
+            // Perbarui userChat untuk user yang baru ditambahkan
+            await updateDoc(doc(userChatRef, user.id), {
+                chats: arrayUnion({
+                    chatId: newChatRef.id,
+                    lastMessage: "",
+                    receiverId: currentUser.id,
+                    updateAt: Date.now(), // Gunakan serverTimestamp() untuk mendapatkan waktu server
+                })
+            });
+
+            console.log("New chat connected:", newChatRef.id);
         } catch (error) {
             console.log(error);
         }
-    }
+    };
+
 
 
     return (
