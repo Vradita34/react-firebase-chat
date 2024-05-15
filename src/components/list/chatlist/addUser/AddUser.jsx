@@ -5,8 +5,8 @@ import { useState } from 'react'
 import { useUserStore } from '../../../../lib/userStore'
 
 const AddUser = () => {
-
     const [user, setUser] = useState(null)
+    const [loading, setLoading] = useState(false);
 
     const { currentUser } = useUserStore()
 
@@ -32,6 +32,8 @@ const AddUser = () => {
     }
 
     const handleAdd = async () => {
+        setLoading(true); // Nonaktifkan tombol saat proses berlangsung
+
         const chatRef = collection(db, "chats");
         const userChatRef = collection(db, "userchats");
 
@@ -66,27 +68,30 @@ const AddUser = () => {
             console.log("New chat connected:", newChatRef.id);
         } catch (error) {
             console.log(error);
+        } finally {
+            // Aktifkan tombol kembali setelah beberapa detik
+            setTimeout(() => {
+                setLoading(false);
+            }, 3000); // Tunggu 3 detik sebelum tombol diaktifkan kembali
         }
     };
-
-
 
     return (
         <div className='addUser'>
             <form onSubmit={handleSearch}>
                 <input type="text" placeholder='Username' name='username' />
-                <button>Search</button>
+                <button disabled={loading}>Search</button>
             </form>
             {user && <div className="user">
                 <div className="detail">
                     <img src={user.avatar || "./avatar.png"} alt="avatar" />
                     <span>{user.username}</span>
                 </div>
-                <button onClick={handleAdd}>Add User</button>
+                <button onClick={handleAdd} disabled={loading}>{loading ? "loading" : "Add User"}</button> {/* Tambahkan atribut disabled */}
             </div>
             }
         </div>
     )
 }
 
-export default AddUser
+export default AddUser;
