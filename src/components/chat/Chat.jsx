@@ -1,11 +1,20 @@
 import EmojiPicker from 'emoji-picker-react'
 import './chat.css'
 import { useEffect, useRef, useState } from 'react'
+import { onSnapshot, doc, updateDoc, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { useChatStore } from '../../lib/chatStore';
+import { useUserStore } from '../../lib/userStore';
+
 
 
 function Chat() {
+    const [chat, setChat] = useState()
     const [open, setOpen] = useState(false)
     const [text, setText] = useState("")
+
+    const { currentUser } = useUserStore()
+    const { chatId, user } = useChatStore()
 
     const endRef = useRef(null)
 
@@ -13,10 +22,109 @@ function Chat() {
         endRef.current?.scrollIntoView({ behavior: "smooth" })
     }, []);
 
+    useEffect(() => {
+        const unSub = onSnapshot(doc(db, "chats", chatId), (res) => {
+            setChat(res.data())
+        })
+
+        return () => {
+            unSub()
+        }
+    }, [chatId])
+
+
     const handleEmoji = (e) => {
         setText(prev => prev + e.emoji);
         setOpen(false)
     }
+    console.log(chat)
+
+    // const handleSend = async () => {
+    //     if (text === "") return;
+
+    //     try {
+    //         await updateDoc(doc(db, "chats", chatId), {
+    //             messages: arrayUnion({
+    //                 senderId: currentUser.id,
+    //                 text,
+    //                 createdAt: new Date(),
+    //             })
+    //         })
+
+    //         const userIDs = [currentUser.id, user.id]
+
+    //         userIDs.forEach(async (id) => {
+    //             const userChatRef = doc(db, "userchats", id)
+    //             const userChatsSnapshot = await getDoc(userChatRef)
+
+    //             if (userChatsSnapshot.exists()) {
+    //                 const userChatsData = userChatsSnapshot.data()
+
+    //                 const chatIndex = userChatsData.chats.findIndex(c => c.chatId === chatId)
+
+    //                 userChatsData[chatIndex].lastMessage = text;
+    //                 userChatsData[chatIndex].isSeen = id === currentUser.id ? true : false;
+    //                 userChatsData[chatIndex].updateAt = Date.now();
+
+    //                 await updateDoc(userChatRef, {
+    //                     chats: userChatsData.chats,
+    //                 })
+    //             }
+    //         })
+
+    //     } catch (error) {
+    //         console.log(error)
+    //     }
+    // }
+
+    const handleSend = async () => {
+        if (text === "") return;
+
+        try {
+            await updateDoc(doc(db, "chats", chatId), {
+                messages: arrayUnion({
+                    senderId: currentUser.id,
+                    text,
+                    createdAt: new Date(),
+                })
+            });
+
+            const userIDs = [currentUser.id, user.id];
+
+            for (const id of userIDs) {
+                const userChatRef = doc(db, "userchats", id);
+                const userChatsSnapshot = await getDoc(userChatRef);
+
+                if (userChatsSnapshot.exists()) {
+                    const userChatsData = userChatsSnapshot.data();
+                    const chatIndex = userChatsData.chats.findIndex(c => c.chatId === chatId);
+
+                    if (chatIndex !== -1) {
+                        userChatsData.chats[chatIndex].lastMessage = text;
+                        userChatsData.chats[chatIndex].isSeen = id === currentUser.id ? true : false;
+                        userChatsData.chats[chatIndex].updateAt = Date.now();
+
+                        await updateDoc(userChatRef, {
+                            chats: userChatsData.chats,
+                        });
+                    }
+                } else {
+                    // Jika dokumen userChats tidak ada, buat dokumen baru
+                    await setDoc(userChatRef, {
+                        chats: [{
+                            chatId: chatId,
+                            lastMessage: text,
+                            isSeen: id === currentUser.id ? true : false,
+                            updateAt: Date.now(),
+                        }]
+                    });
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
 
     return (
         <div className='chat'>
@@ -35,33 +143,22 @@ function Chat() {
                 </div>
             </div>
             <div className="center">
-                <div className="message">
+                {/* <div className="message">
                     <img src="./avatar.png" alt="avatar" />
                     <div className="texts">
                         <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Suscipit nobis consectetur sequi quasi velit eius, nemo commodi ad! Quaerat deserunt assumenda ratione voluptatibus autem at aut blanditiis, eum repellendus sint?</p>
                         <span>1 minutes ago</span>
                     </div>
-                </div>
-                <div className="message own">
-                    <div className="texts">
-                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Suscipit nobis consectetur sequi quasi velit eius, nemo commodi ad! Quaerat deserunt assumenda ratione voluptatibus autem at aut blanditiis, eum repellendus sint?</p>
-                        <span>1 minutes ago</span>
+                </div> */}
+                {chat?.messages?.map((message) => (
+                    <div className={`message ${message.senderId === currentUser.id ? 'own' : 'other'}`} key={message.createdAt}>
+                        <div className="texts">
+                            {message.img && <img src={message.img} alt="sendImage" />}
+                            <p>{message.text}</p>
+                            <span>1 minute ago</span>
+                        </div>
                     </div>
-                </div>
-                <div className="message">
-                    <img src="./avatar.png" alt="avatar" />
-                    <div className="texts">
-                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Suscipit nobis consectetur sequi quasi velit eius, nemo commodi ad! Quaerat deserunt assumenda ratione voluptatibus autem at aut blanditiis, eum repellendus sint?</p>
-                        <span>1 minutes ago</span>
-                    </div>
-                </div>
-                <div className="message own">
-                    <div className="texts">
-                        <img src="https://images.pexels.com/photos/1762851/pexels-photo-1762851.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="sendImage" />
-                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Suscipit nobis consectetur sequi quasi velit eius, nemo commodi ad! Quaerat deserunt assumenda ratione voluptatibus autem at aut blanditiis, eum repellendus sint?</p>
-                        <span>1 minutes ago</span>
-                    </div>
-                </div>
+                ))}
                 <div ref={endRef}></div>
             </div>
             <div className="bottom">
@@ -77,7 +174,7 @@ function Chat() {
                         <EmojiPicker onEmojiClick={handleEmoji} open={open} />
                     </div>
                 </div>
-                <button className='sendButton'>Send</button>
+                <button className='sendButton' onClick={handleSend}>Send</button>
             </div>
         </div>
     )

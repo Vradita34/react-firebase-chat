@@ -54,8 +54,8 @@
     padding: 10px;
     flex: 1;
     overflow: scroll;
-    display: fkex;
-    flex-direction: space-between;
+    display: flex;
+    flex-direction: column;
     gap: 10px;
 
     .message {
@@ -66,8 +66,8 @@
       &.own {
         max-width: 100%;
         align-self: flex-end;
-        margin-left: 200px;
-
+        margin-left: auto;
+        gap: 10px;
         .texts {
           p {
             background-color: #5183fe;
@@ -95,7 +95,7 @@
         }
 
         p {
-          padding: 20px;
+          padding: 15px;
           background-color: rgba(17, 25, 40, 0.3);
           border-radius: 10px;
         }
