@@ -61,13 +61,13 @@
     .message {
       max-width: 70%;
       display: flex;
+      align-self: flex-start;
       gap: 20px;
 
       &.own {
-        max-width: 100%;
+        max-width: 70%;
         align-self: flex-end;
         margin-left: auto;
-        gap: 10px;
         .texts {
           p {
             background-color: #5183fe;
