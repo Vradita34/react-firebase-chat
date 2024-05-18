@@ -160,7 +160,7 @@ function Chat() {
                     <img src="./camera.png" alt="camera" />
                     <img src="./mic.png" alt="mic" />
                 </div>
-                <input type="text" placeholder='Type a message...' value={text} onChange={(e) => setText(e.target.value)} disabled={isCurrentUserBlocked || isReceiverBlocked} />
+                <input type="text" placeholder={isCurrentUserBlocked || isReceiverBlocked ? "You cannot send a message!" : "Type a message..."} value={text} onChange={(e) => setText(e.target.value)} disabled={isCurrentUserBlocked || isReceiverBlocked} />
                 <div className="emoji" onClick={() => setOpen((prev) => !prev)}>
                     <img src="./emoji.png" alt="emoji" />
                     <div className="picker">
