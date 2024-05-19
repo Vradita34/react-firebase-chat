@@ -31,7 +31,7 @@ const App = () => {
       {
         currentUser ? (
           <>
-            <List />
+            {!chatId && < List />}
             {chatId && <Chat />}
             {chatId && <Detail />}
           </>
@@ -43,3 +43,4 @@ const App = () => {
 }
 
 export default App;
+  

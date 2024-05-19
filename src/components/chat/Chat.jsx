@@ -6,6 +6,7 @@ import { db } from '../../lib/firebase';
 import { useChatStore } from '../../lib/chatStore';
 import { useUserStore } from '../../lib/userStore';
 import upload from '../../lib/upload';
+import { formatDistanceToNow } from 'date-fns';
 
 
 
@@ -19,24 +20,24 @@ function Chat() {
     })
 
     const { currentUser } = useUserStore()
-    const { chatId, user, isCurrentUserBlocked, isReceiverBlocked } = useChatStore()
+    const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, deleteChat } = useChatStore()
 
     const endRef = useRef(null)
 
+    // Scroll to the bottom whenever messages change
     useEffect(() => {
-        endRef.current?.scrollIntoView({ behavior: "smooth" })
-    }, []);
+        endRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [chat?.messages]);
 
     useEffect(() => {
         const unSub = onSnapshot(doc(db, "chats", chatId), (res) => {
-            setChat(res.data())
+            setChat(res.data());
         })
 
         return () => {
-            unSub()
+            unSub();
         }
-    }, [chatId])
-
+    }, [chatId]);
 
     const handleEmoji = (e) => {
         setText(prev => prev + e.emoji);
@@ -58,7 +59,6 @@ function Chat() {
         let imgUrl = null;
 
         try {
-
             if (img.file) {
                 imgUrl = await upload(img.file)
             }
@@ -92,7 +92,6 @@ function Chat() {
                         });
                     }
                 } else {
-                    // Jika dokumen userChats tidak ada, buat dokumen baru
                     await setDoc(userChatRef, {
                         chats: [{
                             chatId: chatId,
@@ -115,11 +114,15 @@ function Chat() {
         setText("")
     };
 
+    const handleBack = () => {
+        deleteChat(null, null);  // Reset the chatId and user in the store
+    };
 
     return (
         <div className='chat'>
             <div className="top">
                 <div className="user">
+                    <img src="./back.png" alt="back" onClick={handleBack} />
                     <img src={user?.avatar || "./avatar.png"} alt="avatar" />
                     <div className="texts">
                         <span>{user?.username}</span>
@@ -138,7 +141,7 @@ function Chat() {
                         <div className="texts">
                             {message.img && <img src={message.img} alt="sendImage" />}
                             <p>{message.text}</p>
-                            <span>1 minute ago</span>
+                            <span>{formatDistanceToNow(message.createdAt.toDate(), { addSuffix: true })}</span>
                         </div>
                     </div>
                 ))}
@@ -173,4 +176,4 @@ function Chat() {
     )
 }
 
-export default Chat
+export default Chat;
