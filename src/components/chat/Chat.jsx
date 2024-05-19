@@ -7,12 +7,15 @@ import { useChatStore } from '../../lib/chatStore';
 import { useUserStore } from '../../lib/userStore';
 import upload from '../../lib/upload';
 import { formatDistanceToNow } from 'date-fns';
+import Detail from './detail/Detail';
+
 
 
 
 function Chat() {
     const [chat, setChat] = useState()
     const [open, setOpen] = useState(false)
+    const [addDetail, setAddDetail] = useState(false)
     const [text, setText] = useState("")
     const [img, setImg] = useState({
         file: null,
@@ -115,7 +118,7 @@ function Chat() {
     };
 
     const handleBack = () => {
-        deleteChat(null, null);  // Reset the chatId and user in the store
+        deleteChat(null, null);
     };
 
     return (
@@ -123,8 +126,8 @@ function Chat() {
             <div className="top">
                 <div className="user">
                     <img src="./back.png" alt="back" onClick={handleBack} />
-                    <img src={user?.avatar || "./avatar.png"} alt="avatar" />
-                    <div className="texts">
+                    <img src={user?.avatar || "./avatar.png"} alt="avatar" onClick={() => setAddDetail((prev) => !prev)} />
+                    <div className="texts" onClick={() => setAddDetail((prev) => !prev)}>
                         <span>{user?.username}</span>
                         <p> Lorem ipsum dolor sit amet consectetur. </p>
                     </div>
@@ -132,7 +135,7 @@ function Chat() {
                 <div className="icons">
                     <img src="./phone.png" alt="phone" />
                     <img src="./video.png" alt="video" />
-                    <img src="./info.png" alt="info" />
+                    <img src="./info.png" alt="info" onClick={() => setAddDetail((prev) => !prev)} />
                 </div>
             </div>
             <div className="center">
@@ -172,6 +175,7 @@ function Chat() {
                 </div>
                 <button className='sendButton' onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>Send</button>
             </div>
+            {addDetail && <Detail onClose={() => setAddDetail(false)} />}
         </div>
     )
 }
