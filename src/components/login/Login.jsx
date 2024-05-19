@@ -8,7 +8,7 @@ import upload from '../../lib/upload'
 
 
 const Login = () => {
-
+    const [open, setOpen] = useState()
     const [avatar, setAvatar] = useState({
         file: null,
         url: ""
@@ -73,30 +73,33 @@ const Login = () => {
     }
 
     return (
-        <div className='login'>
-            <div className="item">
-                <h2>Welcome back</h2>
-                <form onSubmit={handleLogin}>
-                    <input type="text" placeholder='Email' name='email' />
-                    <input type="password" placeholder='Pasword' name='password' />
-                    <button disabled={loading}>{loading ? "is Loading" : "Sign In"}</button>
-                </form>
-            </div>
-            <div className="separator"></div>
-            <div className="item">
-                <h2>Create an Account</h2>
-                <form onSubmit={handleRegister}>
-                    <label htmlFor="file">
-                        <img src={avatar.url || "./avatar.png"} alt="" />
-                        Upload an Image Avatar
-                    </label>
-                    <input type="file" id='file' style={{ display: "none" }} onChange={handleAvatar} />
-                    <input type="text" placeholder='Username' name='username' />
-                    <input type="text" placeholder='Email' name='email' />
-                    <input type="password" placeholder='Pasword' name='password' />
-                    <button disabled={loading}>{loading ? "is Loading" : "Sign Up"}</button>
-                </form>
-
+        <div className='auth'>
+            {open ? (
+                <div className="item">
+                    <h2>Welcome back</h2>
+                    <form onSubmit={handleLogin}>
+                        <input type="text" placeholder='Email' name='email' />
+                        <input type="password" placeholder='Pasword' name='password' />
+                        <button disabled={loading}>{loading ? "is Loading" : "Sign In"}</button>
+                    </form>
+                </div>) : (
+                <div className="item">
+                    <h2>Create an Account</h2>
+                    <form onSubmit={handleRegister}>
+                        <label htmlFor="file">
+                            <img src={avatar.url || "./avatar.png"} alt="" />
+                            Upload an Image Avatar
+                        </label>
+                        <input type="file" id='file' style={{ display: "none" }} onChange={handleAvatar} />
+                        <input type="text" placeholder='Username' name='username' />
+                        <input type="text" placeholder='Email' name='email' />
+                        <input type="password" placeholder='Pasword' name='password' />
+                        <button disabled={loading}>{loading ? "is Loading" : "Sign Up"}</button>
+                    </form>
+                </div>
+            )}
+            <div className="footer">
+                <p onClick={() => setOpen((prev) => !prev)}> {open ? "Don`t have an account? Register Here!" : "Already have an account?, Login Here!"}</p>
             </div>
         </div>
     )
