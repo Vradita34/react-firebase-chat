@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import './login.css'
 import { toast } from 'react-toastify'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'
 import { auth, db } from '../../lib/firebase'
 import { doc, setDoc } from 'firebase/firestore'
 import upload from '../../lib/upload'
+import SendEmail from './sendEmail/SendEmail'
 
 
 const Login = () => {
     const [open, setOpen] = useState()
+    const [addModal, setAddModal] = useState(false)
+
     const [avatar, setAvatar] = useState({
         file: null,
         url: ""
@@ -80,6 +83,7 @@ const Login = () => {
                     <form onSubmit={handleLogin}>
                         <input type="text" placeholder='Email' name='email' />
                         <input type="password" placeholder='Pasword' name='password' />
+                        <small onClick={() => setAddModal((prev) => !prev)}>Forgot password?</small>
                         <button disabled={loading}>{loading ? "is Loading" : "Sign In"}</button>
                     </form>
                 </div>) : (
@@ -101,6 +105,7 @@ const Login = () => {
             <div className="footer">
                 <p onClick={() => setOpen((prev) => !prev)}> {open ? "Don`t have an account? Register Here!" : "Already have an account?, Login Here!"}</p>
             </div>
+            {addModal && <SendEmail onClose={() => setAddModal(false)} />}
         </div>
     )
 }

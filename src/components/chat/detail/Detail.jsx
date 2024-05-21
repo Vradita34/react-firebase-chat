@@ -108,7 +108,6 @@ function Detail({ onClose }) {
                     </div>
                 </div>
             </div>
-
         </div>
     )
 }

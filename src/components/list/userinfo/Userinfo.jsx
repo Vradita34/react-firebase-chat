@@ -1,9 +1,12 @@
 import './userinfo.css'
 import { useUserStore } from "../../../lib/userStore";
+import Profile from './profile/Profile';
+import { useState } from 'react';
 
 function Userinfo() {
-
+    const [addProfile, setAddProfile] = useState(false);
     const { currentUser } = useUserStore()
+
     return (
         <div className='userinfo'>
             <div className="user">
@@ -13,10 +16,11 @@ function Userinfo() {
 
 
             <div className="icons">
-                <img src="./more.png" alt="" />
+                <img src="./more.png" alt="" onClick={() => setAddProfile((prev) => !prev)} />
                 <img src="./video.png" alt="" />
                 <img src="./edit.png" alt="" />
             </div>
+            {addProfile && <Profile onClose={() => setAddProfile(false)} />}
         </div>
     )
 }

@@ -9,6 +9,7 @@ import { useChatStore } from '../../../lib/chatStore';
 function Chatlist() {
     const [chats, setChats] = useState([]);
     const [addMode, setAddMode] = useState(false);
+
     const [input, setInput] = useState('');
 
     const { currentUser } = useUserStore();
