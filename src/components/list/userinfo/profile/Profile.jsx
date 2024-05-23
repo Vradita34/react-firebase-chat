@@ -1,40 +1,96 @@
+import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { auth } from '../../../../lib/firebase';
-import { useUserStore } from '../../../../lib/userStore'
-import './profile.css'
+import { auth, db } from '../../../../lib/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useUserStore } from '../../../../lib/userStore';
+import './profile.css';
+import upload from '../../../../lib/upload';
 
 function Profile({ onClose }) {
-
-    const { currentUser } = useUserStore()
+    const { currentUser } = useUserStore();
+    const [editing, setEditing] = useState(false);
+    const [newUsername, setNewUsername] = useState(currentUser.username || '');
+    const [newInfo, setNewInfo] = useState(currentUser.info || '');
+    const [newAvatar, setNewAvatar] = useState(null);
+    const [oldAvatar, setOldAvatar] = useState(currentUser.avatar || "");
 
     const handleLogout = (e) => {
-        e.preventDefault()
+        e.preventDefault();
         auth.signOut()
             .then(() => {
                 console.log('Logout successful');
-                toast.success("LogOut Successful!")
-
-                // sementara, puyeng, diakalisek
+                toast.success("LogOut Successful!");
+                // Temporary redirect, consider React Router for better navigation
                 window.location.href = "/";
             })
             .catch((error) => {
                 console.error('Error logging out:', error);
-                toast.error(error.message)
+                toast.error(error.message);
             });
     };
 
+    const handleEditProfile = () => {
+        setEditing(true);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const userRef = doc(db, 'users', currentUser.id);
+            const updates = {
+                username: newUsername,
+                info: newInfo,
+            };
+            if (newAvatar) {
+                const imgUrl = await upload(newAvatar);
+                updates.avatar = imgUrl;
+            } else {
+                updates.avatar = oldAvatar; // Use old avatar if no new avatar selected
+            }
+            await updateDoc(userRef, updates);
+
+            toast.success('Profile updated successfully!');
+            setEditing(false); // Exit editing mode
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            toast.error('Failed to update profile.');
+        }
+    };
+
+    const handleChangeAvatar = (e) => {
+        if (e.target.files[0]) {
+            setNewAvatar(e.target.files[0]);
+            setOldAvatar(URL.createObjectURL(e.target.files[0]));
+        }
+    };
 
     return (
         <div className='profile'>
             <div className="modal">
                 <div className="modal-content">
                     <div className="modal-header">
-                        <img src="./closered.png" alt="close" onClick={onClose} />
+                        {editing ? (
+                            <img src="./save.gif" alt="Save" onClick={handleSubmit} />
+                        ) : (
+                            <img src="./edit.png" alt="Edit" onClick={handleEditProfile} />
+                        )}
+                        <img src="./closered.png" alt="Close" onClick={onClose} />
                     </div>
                     <div className="user">
-                        <img src={currentUser.avatar || "./avatar.png"} alt="avatar" />
-                        <h2>{currentUser.username || "anonim"}</h2>
-                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                        <img src={editing ? oldAvatar : currentUser.avatar || "./avatar.png"} alt="avatar" />
+                        {editing ? (
+                            <>
+                                <input type="file" onChange={handleChangeAvatar} />
+                                <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
+                                <textarea value={newInfo} onChange={(e) => setNewInfo(e.target.value)} />
+                                {/* <button className='save-button' onClick={handleSubmit}>Save</button> */}
+                            </>
+                        ) : (
+                            <>
+                                <h2>{currentUser.username || "anonim"}</h2>
+                                <p>{currentUser.info}</p>
+                            </>
+                        )}
                     </div>
                     <div className="info">
                         <div className="option">
@@ -60,7 +116,7 @@ function Profile({ onClose }) {
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-export default Profile
+export default Profile;

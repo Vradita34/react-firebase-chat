@@ -17,7 +17,6 @@ function Userinfo() {
 
             <div className="icons">
                 <img src="./more.png" alt="" onClick={() => setAddProfile((prev) => !prev)} />
-                <img src="./video.png" alt="" />
                 <img src="./edit.png" alt="" />
             </div>
             {addProfile && <Profile onClose={() => setAddProfile(false)} />}

@@ -1,10 +1,10 @@
+// uploadAudio.js
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "./firebase";
 
-const upload = async (file) => {
-    const fileType = file.type.startsWith('audio') ? 'audio' : 'images';
+const uploadAudio = async (file) => {
     const fileName = `${new Date().getTime()}_${file.name}`;
-    const storageRef = ref(storage, `${fileType}/${fileName}`);
+    const storageRef = ref(storage, `audio/${fileName}`);
 
     const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -26,4 +26,4 @@ const upload = async (file) => {
     });
 };
 
-export default upload;
+export default uploadAudio;

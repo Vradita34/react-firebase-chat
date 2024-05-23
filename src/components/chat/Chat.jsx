@@ -18,14 +18,16 @@ function Chat() {
         file: null,
         url: "",
     });
+    const [audioBlob, setAudioBlob] = useState(null);
     const [editMode, setEditMode] = useState(false);
     const [editMessageId, setEditMessageId] = useState(null);
     const [showActions, setShowActions] = useState(false);
-    const [clickedMessageId, setClickedMessageId] = useState(null); // Tambahkan state untuk menyimpan ID pesan yang diklik
+    const [clickedMessageId, setClickedMessageId] = useState(null);
+    const [isRecording, setIsRecording] = useState(false);
+    const [mediaRecorder, setMediaRecorder] = useState(null);
 
     const { currentUser } = useUserStore();
     const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, deleteChat } = useChatStore();
-
     const endRef = useRef(null);
 
     useEffect(() => {
@@ -47,28 +49,26 @@ function Chat() {
         setOpen(false);
     };
 
-    const handleImg = (e) => {
-        if (e.target.files[0]) {
-            setImg({
-                file: e.target.files[0],
-                url: URL.createObjectURL(e.target.files[0])
-            });
-        }
-    };
-
     const handleSend = async () => {
-        if (text === "") return;
+        const trimmedText = text.trim();
+        if (trimmedText === "" && !img.file && !audioBlob) return;
 
         let imgUrl = null;
+        let audioUrl = null;
 
         try {
             if (img.file) {
                 imgUrl = await upload(img.file);
             }
 
+            if (audioBlob) {
+                const audioFile = new File([audioBlob], `voice_${Date.now()}.webm`, { type: 'audio/webm' });
+                audioUrl = await upload(audioFile);
+            }
+
             if (editMode) {
                 const updatedMessages = chat.messages.map(message =>
-                    message.id === editMessageId ? { ...message, text, ...(imgUrl && { img: imgUrl }), updatedAt: new Date() } : message
+                    message.id === editMessageId ? { ...message, text: trimmedText, ...(imgUrl && { img: imgUrl }), ...(audioUrl && { audio: audioUrl }), updatedAt: new Date() } : message
                 );
 
                 await updateDoc(doc(db, "chats", chatId), {
@@ -82,9 +82,10 @@ function Chat() {
                     messages: arrayUnion({
                         id: Date.now().toString(),
                         senderId: currentUser.id,
-                        text,
+                        text: trimmedText,
                         createdAt: new Date(),
                         ...(imgUrl && { img: imgUrl }),
+                        ...(audioUrl && { audio: audioUrl }),
                     })
                 });
 
@@ -99,7 +100,7 @@ function Chat() {
                         const chatIndex = userChatsData.chats.findIndex(c => c.chatId === chatId);
 
                         if (chatIndex !== -1) {
-                            userChatsData.chats[chatIndex].lastMessage = text;
+                            userChatsData.chats[chatIndex].lastMessage = trimmedText;
                             userChatsData.chats[chatIndex].isSeen = id === currentUser.id ? true : false;
                             userChatsData.chats[chatIndex].updateAt = Date.now();
 
@@ -111,7 +112,7 @@ function Chat() {
                         await setDoc(userChatRef, {
                             chats: [{
                                 chatId: chatId,
-                                lastMessage: text,
+                                lastMessage: trimmedText,
                                 isSeen: id === currentUser.id ? true : false,
                                 updateAt: Date.now(),
                             }]
@@ -120,15 +121,24 @@ function Chat() {
                 }
             }
         } catch (error) {
-            console.log(error);
+            console.error("Error sending message:", error);
         }
 
         setImg({
             file: null,
             url: "",
         });
-
+        setAudioBlob(null);
         setText("");
+    };
+
+    const handleImg = (e) => {
+        if (e.target.files[0]) {
+            setImg({
+                file: e.target.files[0],
+                url: URL.createObjectURL(e.target.files[0])
+            });
+        }
     };
 
     const handleEdit = (message) => {
@@ -154,6 +164,35 @@ function Chat() {
         setShowActions(prev => !prev);
     };
 
+    const handleRecord = async () => {
+        if (!isRecording) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                const audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    setAudioBlob(audioBlob);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                setMediaRecorder(mediaRecorder);
+                mediaRecorder.start();
+                setIsRecording(true);
+            } catch (error) {
+                console.error("Microphone permission denied or error:", error);
+            }
+        } else {
+            mediaRecorder.stop();
+            setIsRecording(false);
+        }
+    };
+
     return (
         <div className='chat'>
             <div className="top">
@@ -166,8 +205,8 @@ function Chat() {
                     </div>
                 </div>
                 <div className="icons">
-                    <img src="./phone.png" alt="phone" />
-                    <img src="./video.png" alt="video" />
+                    {/* <img src="./phone.png" alt="phone" />
+                    <img src="./video.png" alt="video" /> */}
                     <img src="./info.png" alt="info" onClick={() => setAddDetail((prev) => !prev)} />
                 </div>
             </div>
@@ -176,6 +215,7 @@ function Chat() {
                     <div className={`message ${message.senderId === currentUser.id ? 'own' : 'other'}`} key={message.id} onClick={() => handleToggleActions(message.id)} >
                         <div className="texts">
                             {message.img && <img src={message.img} alt="sendImage" />}
+                            {message.audio && <audio controls src={message.audio} />}
                             <p>{message.text}</p>
                             {message.senderId === currentUser.id && clickedMessageId === message.id && (
                                 <div className="actions" style={{ display: showActions ? "block" : "none" }}>
@@ -203,7 +243,7 @@ function Chat() {
                     </label>
                     <input type="file" id='file' style={{ display: "none" }} onChange={handleImg} />
                     <img src="./camera.png" alt="camera" />
-                    <img src="./mic.png" alt="mic" />
+                    <img src="./mic.png" alt="mic" onClick={handleRecord} />
                 </div>
                 <input type="text" placeholder={isCurrentUserBlocked || isReceiverBlocked ? "You cannot send a message!" : "Type a message..."} value={text} onChange={(e) => setText(e.target.value)} disabled={isCurrentUserBlocked || isReceiverBlocked} />
                 <div className="emoji" onClick={() => setOpen((prev) => !prev)}>

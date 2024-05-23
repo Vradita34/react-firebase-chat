@@ -24,8 +24,13 @@
     .modal-header {
       display: flex;
       /* align-self: flex-end; */
-      align-items: center;
+      /* align-items: center; */
+      justify-content: space-between;
       cursor: pointer;
+      img {
+        width: 25px;
+        height: 25px;
+      }
     }
   }
 
