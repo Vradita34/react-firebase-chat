@@ -29,6 +29,7 @@ function Chat() {
     const { currentUser } = useUserStore();
     const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, deleteChat } = useChatStore();
     const endRef = useRef(null);
+    const [isFriendOnline, setIsFriendOnline] = useState(false);
 
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -43,6 +44,20 @@ function Chat() {
             unSub();
         };
     }, [chatId]);
+
+    useEffect(() => {
+        // Mendengarkan perubahan pada dokumen pengguna teman chat
+        const unsubscribe = onSnapshot(doc(db, "users", user.id), (doc) => {
+            if (doc.exists()) {
+                const userData = doc.data();
+                setIsFriendOnline(userData.isOnline); // Memperbarui status online/offline teman chat dalam state
+            }
+        });
+
+        return () => {
+            unsubscribe(); // Hentikan pendengaran saat komponen di-unmount
+        };
+    }, [user.id]);
 
     const handleEmoji = (e) => {
         setText((prev) => prev + e.emoji);
@@ -201,12 +216,11 @@ function Chat() {
                     <img src={user?.avatar || "./avatar.png"} alt="avatar" onClick={() => setAddDetail((prev) => !prev)} />
                     <div className="texts" onClick={() => setAddDetail((prev) => !prev)}>
                         <span>{user?.username}</span>
-                        <p> Lorem ipsum dolor sit amet consectetur. </p>
+                        <p> {user?.info} </p>
+                        <small>{isFriendOnline ? "Sedang Online" : "Sedang Offline"}</small>
                     </div>
                 </div>
                 <div className="icons">
-                    {/* <img src="./phone.png" alt="phone" />
-                    <img src="./video.png" alt="video" /> */}
                     <img src="./info.png" alt="info" onClick={() => setAddDetail((prev) => !prev)} />
                 </div>
             </div>

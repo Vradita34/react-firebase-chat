@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import './login.css'
 import { toast } from 'react-toastify'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth, db } from '../../lib/firebase'
-import { doc, setDoc } from 'firebase/firestore'
+import { doc, setDoc, updateDoc } from 'firebase/firestore'
 import upload from '../../lib/upload'
 import SendEmail from './sendEmail/SendEmail'
 
@@ -45,6 +45,7 @@ const Login = () => {
                 email,
                 info: null,
                 avatar: imgUrl,
+                isOnline: false,
                 id: res.user.uid,
                 block: [],
             });
@@ -61,20 +62,25 @@ const Login = () => {
         }
     }
     const handleLogin = async (e) => {
-        e.preventDefault()
-        setLoading(true)
+        e.preventDefault();
+        setLoading(true);
         const formData = new FormData(e.target);
-        const { email, password } = Object.fromEntries(formData)
+        const { email, password } = Object.fromEntries(formData);
 
         try {
-            await signInWithEmailAndPassword(auth, email, password)
+            const res = await signInWithEmailAndPassword(auth, email, password);
+
+            const userDocRef = doc(db, "users", res.user.uid);
+            await updateDoc(userDocRef, {
+                isOnline: true,
+            });
         } catch (error) {
-            console.log(error)
-            toast.error(error.message)
+            console.log(error);
+            toast.error(error.message);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     return (
         <div className='auth'>

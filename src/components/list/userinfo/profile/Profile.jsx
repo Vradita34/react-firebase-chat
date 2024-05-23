@@ -5,6 +5,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { useUserStore } from '../../../../lib/userStore';
 import './profile.css';
 import upload from '../../../../lib/upload';
+import { signOut } from 'firebase/auth';
 
 function Profile({ onClose }) {
     const { currentUser } = useUserStore();
@@ -14,19 +15,27 @@ function Profile({ onClose }) {
     const [newAvatar, setNewAvatar] = useState(null);
     const [oldAvatar, setOldAvatar] = useState(currentUser.avatar || "");
 
-    const handleLogout = (e) => {
+    const handleLogout = async (e) => {
         e.preventDefault();
-        auth.signOut()
-            .then(() => {
-                console.log('Logout successful');
-                toast.success("LogOut Successful!");
-                // Temporary redirect, consider React Router for better navigation
-                window.location.href = "/";
-            })
-            .catch((error) => {
-                console.error('Error logging out:', error);
-                toast.error(error.message);
+
+        try {
+            // Sign out the user
+            await signOut(auth);
+
+            // Update isOnline to false for the user in the users collection
+            const userDocRef = doc(db, "users", currentUser.id);
+            await updateDoc(userDocRef, {
+                isOnline: false,
             });
+
+            console.log('Logout successful');
+            toast.success("LogOut Successful!");
+            // Temporary redirect, consider React Router for better navigation
+            window.location.href = "/";
+        } catch (error) {
+            console.error('Error logging out:', error);
+            toast.error(error.message);
+        }
     };
 
     const handleEditProfile = () => {
@@ -83,7 +92,6 @@ function Profile({ onClose }) {
                                 <input type="file" onChange={handleChangeAvatar} />
                                 <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
                                 <textarea value={newInfo} onChange={(e) => setNewInfo(e.target.value)} />
-                                {/* <button className='save-button' onClick={handleSubmit}>Save</button> */}
                             </>
                         ) : (
                             <>
