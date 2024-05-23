@@ -1,6 +1,6 @@
-import EmojiPicker from 'emoji-picker-react'
-import './chat.css'
-import { useEffect, useRef, useState } from 'react'
+import EmojiPicker from 'emoji-picker-react';
+import './chat.css';
+import { useEffect, useRef, useState } from 'react';
 import { onSnapshot, doc, updateDoc, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useChatStore } from '../../lib/chatStore';
@@ -9,25 +9,25 @@ import upload from '../../lib/upload';
 import { formatDistanceToNow } from 'date-fns';
 import Detail from './detail/Detail';
 
-
-
-
 function Chat() {
-    const [chat, setChat] = useState()
-    const [open, setOpen] = useState(false)
-    const [addDetail, setAddDetail] = useState(false)
-    const [text, setText] = useState("")
+    const [chat, setChat] = useState();
+    const [open, setOpen] = useState(false);
+    const [addDetail, setAddDetail] = useState(false);
+    const [text, setText] = useState("");
     const [img, setImg] = useState({
         file: null,
         url: "",
-    })
+    });
+    const [editMode, setEditMode] = useState(false);
+    const [editMessageId, setEditMessageId] = useState(null);
+    const [showActions, setShowActions] = useState(false);
+    const [clickedMessageId, setClickedMessageId] = useState(null); // Tambahkan state untuk menyimpan ID pesan yang diklik
 
-    const { currentUser } = useUserStore()
-    const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, deleteChat } = useChatStore()
+    const { currentUser } = useUserStore();
+    const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, deleteChat } = useChatStore();
 
-    const endRef = useRef(null)
+    const endRef = useRef(null);
 
-    // Scroll to the bottom whenever messages change
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [chat?.messages]);
@@ -35,26 +35,26 @@ function Chat() {
     useEffect(() => {
         const unSub = onSnapshot(doc(db, "chats", chatId), (res) => {
             setChat(res.data());
-        })
+        });
 
         return () => {
             unSub();
-        }
+        };
     }, [chatId]);
 
     const handleEmoji = (e) => {
-        setText(prev => prev + e.emoji);
-        setOpen(false)
-    }
+        setText((prev) => prev + e.emoji);
+        setOpen(false);
+    };
 
     const handleImg = (e) => {
         if (e.target.files[0]) {
             setImg({
                 file: e.target.files[0],
                 url: URL.createObjectURL(e.target.files[0])
-            })
+            });
         }
-    }
+    };
 
     const handleSend = async () => {
         if (text === "") return;
@@ -63,46 +63,60 @@ function Chat() {
 
         try {
             if (img.file) {
-                imgUrl = await upload(img.file)
+                imgUrl = await upload(img.file);
             }
 
-            await updateDoc(doc(db, "chats", chatId), {
-                messages: arrayUnion({
-                    senderId: currentUser.id,
-                    text,
-                    createdAt: new Date(),
-                    ...(imgUrl && { img: imgUrl }),
-                })
-            });
+            if (editMode) {
+                const updatedMessages = chat.messages.map(message =>
+                    message.id === editMessageId ? { ...message, text, ...(imgUrl && { img: imgUrl }), updatedAt: new Date() } : message
+                );
 
-            const userIDs = [currentUser.id, user.id];
+                await updateDoc(doc(db, "chats", chatId), {
+                    messages: updatedMessages,
+                });
 
-            for (const id of userIDs) {
-                const userChatRef = doc(db, "userchats", id);
-                const userChatsSnapshot = await getDoc(userChatRef);
+                setEditMode(false);
+                setEditMessageId(null);
+            } else {
+                await updateDoc(doc(db, "chats", chatId), {
+                    messages: arrayUnion({
+                        id: Date.now().toString(),
+                        senderId: currentUser.id,
+                        text,
+                        createdAt: new Date(),
+                        ...(imgUrl && { img: imgUrl }),
+                    })
+                });
 
-                if (userChatsSnapshot.exists()) {
-                    const userChatsData = userChatsSnapshot.data();
-                    const chatIndex = userChatsData.chats.findIndex(c => c.chatId === chatId);
+                const userIDs = [currentUser.id, user.id];
 
-                    if (chatIndex !== -1) {
-                        userChatsData.chats[chatIndex].lastMessage = text;
-                        userChatsData.chats[chatIndex].isSeen = id === currentUser.id ? true : false;
-                        userChatsData.chats[chatIndex].updateAt = Date.now();
+                for (const id of userIDs) {
+                    const userChatRef = doc(db, "userchats", id);
+                    const userChatsSnapshot = await getDoc(userChatRef);
 
-                        await updateDoc(userChatRef, {
-                            chats: userChatsData.chats,
+                    if (userChatsSnapshot.exists()) {
+                        const userChatsData = userChatsSnapshot.data();
+                        const chatIndex = userChatsData.chats.findIndex(c => c.chatId === chatId);
+
+                        if (chatIndex !== -1) {
+                            userChatsData.chats[chatIndex].lastMessage = text;
+                            userChatsData.chats[chatIndex].isSeen = id === currentUser.id ? true : false;
+                            userChatsData.chats[chatIndex].updateAt = Date.now();
+
+                            await updateDoc(userChatRef, {
+                                chats: userChatsData.chats,
+                            });
+                        }
+                    } else {
+                        await setDoc(userChatRef, {
+                            chats: [{
+                                chatId: chatId,
+                                lastMessage: text,
+                                isSeen: id === currentUser.id ? true : false,
+                                updateAt: Date.now(),
+                            }]
                         });
                     }
-                } else {
-                    await setDoc(userChatRef, {
-                        chats: [{
-                            chatId: chatId,
-                            lastMessage: text,
-                            isSeen: id === currentUser.id ? true : false,
-                            updateAt: Date.now(),
-                        }]
-                    });
                 }
             }
         } catch (error) {
@@ -112,13 +126,32 @@ function Chat() {
         setImg({
             file: null,
             url: "",
-        })
+        });
 
-        setText("")
+        setText("");
+    };
+
+    const handleEdit = (message) => {
+        setEditMode(true);
+        setEditMessageId(message.id);
+        setText(message.text);
+        setImg({ file: null, url: message.img || "" });
+    };
+
+    const handleDelete = async (messageId) => {
+        const updatedMessages = chat.messages.filter(message => message.id !== messageId);
+        await updateDoc(doc(db, "chats", chatId), {
+            messages: updatedMessages,
+        });
     };
 
     const handleBack = () => {
         deleteChat(null, null);
+    };
+
+    const handleToggleActions = (messageId) => {
+        setClickedMessageId(messageId);
+        setShowActions(prev => !prev);
     };
 
     return (
@@ -140,10 +173,16 @@ function Chat() {
             </div>
             <div className="center">
                 {chat?.messages?.map((message) => (
-                    <div className={`message ${message.senderId === currentUser.id ? 'own' : 'other'}`} key={message.createdAt}>
+                    <div className={`message ${message.senderId === currentUser.id ? 'own' : 'other'}`} key={message.id} onClick={() => handleToggleActions(message.id)} >
                         <div className="texts">
                             {message.img && <img src={message.img} alt="sendImage" />}
                             <p>{message.text}</p>
+                            {message.senderId === currentUser.id && clickedMessageId === message.id && (
+                                <div className="actions" style={{ display: showActions ? "block" : "none" }}>
+                                    <button onClick={() => handleEdit(message)}>Edit</button>
+                                    <button onClick={() => handleDelete(message.id)}>Delete</button>
+                                </div>
+                            )}
                             <span>{formatDistanceToNow(message.createdAt.toDate(), { addSuffix: true })}</span>
                         </div>
                     </div>
@@ -173,11 +212,11 @@ function Chat() {
                         <EmojiPicker onEmojiClick={handleEmoji} open={open} />
                     </div>
                 </div>
-                <button className='sendButton' onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>Send</button>
+                <button className='sendButton' onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>{editMode ? 'Edit' : 'Send'}</button>
             </div>
             {addDetail && <Detail onClose={() => setAddDetail(false)} />}
         </div>
-    )
+    );
 }
 
 export default Chat;
