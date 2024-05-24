@@ -94,6 +94,14 @@
           object-fit: cover;
         }
 
+        a {
+          color: white;
+          padding: 5px;
+          background-color: rgba(17, 250, 40, 0.3);
+          border-radius: 5px;
+          text-decoration: none;
+        }
+
         p {
           padding: 15px;
           background-color: rgba(17, 25, 40, 0.3);

@@ -2,7 +2,17 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "./firebase";
 
 const upload = async (file) => {
-    const fileType = file.type.startsWith('audio') ? 'audio' : 'images';
+    let fileType = 'others';
+    if (file.type.startsWith('audio')) {
+        fileType = 'audio';
+    } else if (file.type.startsWith('video')) {
+        fileType = 'video';
+    } else if (file.type.startsWith('application')) {
+        fileType = 'document';
+    } else if (file.type.startsWith('image')) {
+        fileType = 'image';
+    }
+
     const fileName = `${new Date().getTime()}_${file.name}`;
     const storageRef = ref(storage, `${fileType}/${fileName}`);
 

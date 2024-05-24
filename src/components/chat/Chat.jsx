@@ -1,6 +1,6 @@
+import React, { useEffect, useRef, useState } from 'react';
 import EmojiPicker from 'emoji-picker-react';
 import './chat.css';
-import { useEffect, useRef, useState } from 'react';
 import { onSnapshot, doc, updateDoc, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useChatStore } from '../../lib/chatStore';
@@ -8,16 +8,16 @@ import { useUserStore } from '../../lib/userStore';
 import upload from '../../lib/upload';
 import { formatDistanceToNow } from 'date-fns';
 import Detail from './detail/Detail';
+import MediaModal from './modal/MediaModal';
 
 function Chat() {
     const [chat, setChat] = useState();
     const [open, setOpen] = useState(false);
     const [addDetail, setAddDetail] = useState(false);
     const [text, setText] = useState("");
-    const [img, setImg] = useState({
-        file: null,
-        url: "",
-    });
+    const [file, setFile] = useState(null);
+    const [fileType, setFileType] = useState(null);
+    const [filePreview, setFilePreview] = useState(null);
     const [audioBlob, setAudioBlob] = useState(null);
     const [editMode, setEditMode] = useState(false);
     const [editMessageId, setEditMessageId] = useState(null);
@@ -25,6 +25,7 @@ function Chat() {
     const [clickedMessageId, setClickedMessageId] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
     const [mediaRecorder, setMediaRecorder] = useState(null);
+    const [isFileUploadModalOpen, setIsFileUploadModalOpen] = useState(false);
 
     const { currentUser } = useUserStore();
     const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, deleteChat } = useChatStore();
@@ -46,16 +47,15 @@ function Chat() {
     }, [chatId]);
 
     useEffect(() => {
-        // Mendengarkan perubahan pada dokumen pengguna teman chat
         const unsubscribe = onSnapshot(doc(db, "users", user.id), (doc) => {
             if (doc.exists()) {
                 const userData = doc.data();
-                setIsFriendOnline(userData.isOnline); // Memperbarui status online/offline teman chat dalam state
+                setIsFriendOnline(userData.isOnline);
             }
         });
 
         return () => {
-            unsubscribe(); // Hentikan pendengaran saat komponen di-unmount
+            unsubscribe();
         };
     }, [user.id]);
 
@@ -66,14 +66,14 @@ function Chat() {
 
     const handleSend = async () => {
         const trimmedText = text.trim();
-        if (trimmedText === "" && !img.file && !audioBlob) return;
+        if (trimmedText === "" && !file && !audioBlob) return;
 
-        let imgUrl = null;
+        let fileUrl = null;
         let audioUrl = null;
 
         try {
-            if (img.file) {
-                imgUrl = await upload(img.file);
+            if (file) {
+                fileUrl = await upload(file);
             }
 
             if (audioBlob) {
@@ -83,7 +83,7 @@ function Chat() {
 
             if (editMode) {
                 const updatedMessages = chat.messages.map(message =>
-                    message.id === editMessageId ? { ...message, text: trimmedText, ...(imgUrl && { img: imgUrl }), ...(audioUrl && { audio: audioUrl }), updatedAt: new Date() } : message
+                    message.id === editMessageId ? { ...message, text: trimmedText, ...(fileUrl && { file: fileUrl, fileType }), ...(audioUrl && { audio: audioUrl }), updatedAt: new Date() } : message
                 );
 
                 await updateDoc(doc(db, "chats", chatId), {
@@ -99,7 +99,7 @@ function Chat() {
                         senderId: currentUser.id,
                         text: trimmedText,
                         createdAt: new Date(),
-                        ...(imgUrl && { img: imgUrl }),
+                        ...(fileUrl && { file: fileUrl, fileType }),
                         ...(audioUrl && { audio: audioUrl }),
                     })
                 });
@@ -139,28 +139,26 @@ function Chat() {
             console.error("Error sending message:", error);
         }
 
-        setImg({
-            file: null,
-            url: "",
-        });
+        setFile(null);
+        setFileType(null);
+        setFilePreview(null);
         setAudioBlob(null);
         setText("");
     };
 
-    const handleImg = (e) => {
-        if (e.target.files[0]) {
-            setImg({
-                file: e.target.files[0],
-                url: URL.createObjectURL(e.target.files[0])
-            });
-        }
+    const handleFileSelect = (selectedFile, type) => {
+        setFile(selectedFile);
+        setFileType(type);
+        setFilePreview(URL.createObjectURL(selectedFile));
     };
 
     const handleEdit = (message) => {
         setEditMode(true);
         setEditMessageId(message.id);
         setText(message.text);
-        setImg({ file: null, url: message.img || "" });
+        setFile(null);
+        setFileType(null);
+        setFilePreview(message.file || "");
     };
 
     const handleDelete = async (messageId) => {
@@ -228,8 +226,10 @@ function Chat() {
                 {chat?.messages?.map((message) => (
                     <div className={`message ${message.senderId === currentUser.id ? 'own' : 'other'}`} key={message.id} onClick={() => handleToggleActions(message.id)} >
                         <div className="texts">
-                            {message.img && <img src={message.img} alt="sendImage" />}
-                            {message.audio && <audio controls src={message.audio} />}
+                            {message.fileType === 'video' && <video controls src={message.file} />}
+                            {message.fileType === 'audio' && <audio controls src={message.file} />}
+                            {message.fileType === 'image' && <img src={message.file} alt="sendImage" />}
+                            {message.fileType === 'document' && <a href={message.file} target="_blank" rel="noopener noreferrer">Open Document</a>}
                             <p>{message.text}</p>
                             {message.senderId === currentUser.id && clickedMessageId === message.id && (
                                 <div className="actions" style={{ display: showActions ? "block" : "none" }}>
@@ -241,10 +241,13 @@ function Chat() {
                         </div>
                     </div>
                 ))}
-                {img.url &&
+                {filePreview &&
                     <div className="message own">
                         <div className="texts">
-                            <img src={img.url} alt="sendImage" />
+                            {fileType === 'video' && <video controls src={filePreview} />}
+                            {fileType === 'audio' && <audio controls src={filePreview} />}
+                            {fileType === 'document' && <a href={filePreview} target="_blank" rel="noopener noreferrer">Open Document</a>}
+                            {fileType === 'image' && <img src={filePreview} alt="sendImage" />}
                         </div>
                     </div>
                 }
@@ -252,11 +255,8 @@ function Chat() {
             </div>
             <div className="bottom">
                 <div className="icons">
-                    <label htmlFor="file">
-                        <img src="./img.png" alt="img" />
-                    </label>
-                    <input type="file" id='file' style={{ display: "none" }} onChange={handleImg} />
-                    <img src="./camera.png" alt="camera" />
+                    <input type="file" id='file' style={{ display: "none" }} />
+                    <img src="./link.png" alt="link" onClick={() => setIsFileUploadModalOpen(true)} />
                     <img src="./mic.png" alt="mic" onClick={handleRecord} />
                 </div>
                 <input type="text" placeholder={isCurrentUserBlocked || isReceiverBlocked ? "You cannot send a message!" : "Type a message..."} value={text} onChange={(e) => setText(e.target.value)} disabled={isCurrentUserBlocked || isReceiverBlocked} />
@@ -269,6 +269,7 @@ function Chat() {
                 <button className='sendButton' onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>{editMode ? 'Edit' : 'Send'}</button>
             </div>
             {addDetail && <Detail onClose={() => setAddDetail(false)} />}
+            {isFileUploadModalOpen && <MediaModal onClose={() => setIsFileUploadModalOpen(false)} onFileSelect={handleFileSelect} />}
         </div>
     );
 }
