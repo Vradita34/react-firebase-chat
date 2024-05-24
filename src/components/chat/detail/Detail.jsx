@@ -1,47 +1,96 @@
-
 import { toast } from 'react-toastify';
-import { auth, db } from '../../../lib/firebase'
-import './detail.css'
+import { auth, db } from '../../../lib/firebase';
+import './detail.css';
 import { useChatStore } from '../../../lib/chatStore';
 import { useUserStore } from '../../../lib/userStore';
-import { arrayRemove, arrayUnion, doc, updateDoc } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 
 function Detail({ onClose }) {
-    const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, changeBlock } = useChatStore()
-    const { currentUser } = useUserStore()
+    const { user, isCurrentUserBlocked, isReceiverBlocked, changeBlock, deleteChat } = useChatStore();
+    const { currentUser } = useUserStore();
 
     const handleBlock = async () => {
         if (!user) return;
 
-        const userDocRef = doc(db, "users", currentUser.id)
+        const userDocRef = doc(db, "users", currentUser.id);
 
         try {
             await updateDoc(userDocRef, {
                 blocked: isReceiverBlocked ? arrayRemove(user.id) : arrayUnion(user.id),
-            })
-            changeBlock()
+            });
+            changeBlock();
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    }
+    };
+
+    const handleDeleteFriend = async () => {
+        if (!user) return;
+
+        const currentUserChatDoc = doc(db, "userchats", currentUser.id);
+        const friendUserChatDoc = doc(db, "userchats", user.id);
+
+        try {
+            // Fetch the current user's chat data
+            const currentUserChatSnapshot = await getDoc(currentUserChatDoc);
+            if (currentUserChatSnapshot.exists()) {
+                const currentUserChats = currentUserChatSnapshot.data().chats || [];
+
+                // Find the chat ID related to the friend
+                const chat = currentUserChats.find(c => c.receiverId === user.id);
+                if (chat) {
+                    // Remove the chat relationship from the current user
+                    await updateDoc(currentUserChatDoc, {
+                        chats: arrayRemove(chat),
+                    });
+
+                    // Remove the chat relationship from the friend user
+                    const friendUserChatSnapshot = await getDoc(friendUserChatDoc);
+                    if (friendUserChatSnapshot.exists()) {
+                        const friendUserChats = friendUserChatSnapshot.data().chats || [];
+                        const friendChat = friendUserChats.find(c => c.receiverId === currentUser.id);
+                        if (friendChat) {
+                            await updateDoc(friendUserChatDoc, {
+                                chats: arrayRemove(friendChat),
+                            });
+                        }
+                    }
+
+                    // Optionally, delete the chat document
+                    const chatDocRef = doc(db, "chats", chat.chatId);
+                    await deleteDoc(chatDocRef);
+
+                    // Remove any pending friend requests
+                    await updateDoc(doc(db, "friendRequests", currentUser.id), {
+                        requests: arrayRemove({ senderId: user.id })
+                    });
+                    await updateDoc(doc(db, "friendRequests", user.id), {
+                        requests: arrayRemove({ senderId: currentUser.id })
+                    });
+                    toast.success("Friend deleted successfully");
+                    window.location.href = "/";
+                }
+            }
+        } catch (error) {
+            console.error('Error deleting friend:', error);
+            toast.error(error);
+        }
+    };
 
     const handleLogout = async (e) => {
         e.preventDefault();
 
         try {
-            // Sign out the user
             await signOut(auth);
 
-            // Update isOnline to false for the user in the users collection
             const userDocRef = doc(db, "users", currentUser.id);
             await updateDoc(userDocRef, {
                 isOnline: false,
             });
 
             console.log('Logout successful');
-            toast.success("LogOut Successful!");
-            // Temporary redirect, consider React Router for better navigation
+            toast.success("Logout Successful!");
             window.location.href = "/";
         } catch (error) {
             console.error('Error logging out:', error);
@@ -82,12 +131,13 @@ function Detail({ onClose }) {
                         <button onClick={handleBlock}>
                             {isCurrentUserBlocked ? "You are Blocked" : isReceiverBlocked ? "User Blocked" : "Block User"}
                         </button>
+                        <button onClick={handleDeleteFriend}>Delete Friend</button>
                         <button className='logout' onClick={handleLogout}>Log Out</button>
                     </div>
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-export default Detail
+export default Detail;
