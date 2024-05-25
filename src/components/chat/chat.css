@@ -4,6 +4,7 @@
   border-right: 1px solid #dddddd35;
   display: flex;
   flex-direction: column;
+  background-color: rgba(17, 25, 40, 0.6);
   .top {
     padding: 5px;
     display: flex;

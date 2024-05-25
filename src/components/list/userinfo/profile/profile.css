@@ -13,10 +13,11 @@
   }
 
   .modal-content {
-    background-color: rgba(0, 90, 300, 0.4);
+    background-color: rgba(17, 25, 40, 0.5);
     backdrop-filter: blur(19px) saturate(180%);
     padding: 20px;
     border-radius: 8px;
+    border: none;
     width: 400px;
     max-width: 90%;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);

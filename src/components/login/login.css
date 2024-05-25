@@ -77,3 +77,10 @@
     cursor: pointer;
   }
 }
+@media (max-width: 780px) {
+  .auth {
+    width: 300px;
+    height: max-content;
+    padding: 30px;
+  }
+}
