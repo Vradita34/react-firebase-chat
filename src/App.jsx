@@ -26,7 +26,20 @@ const App = () => {
   if (isLoading) return <div className="loading">Loading...</div>
 
   return (
-    <div className='container'>
+
+    <div className='container area'>
+      <ul className="circles">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
       {
         currentUser ? (
           <>
@@ -36,7 +49,8 @@ const App = () => {
         ) : (<Login />)
       }
       <Notification />
-    </div>
+    </div >
+
   )
 }
 

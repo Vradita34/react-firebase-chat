@@ -54,12 +54,12 @@ function Profile({ onClose }) {
                 const imgUrl = await upload(newAvatar);
                 updates.avatar = imgUrl;
             } else {
-                updates.avatar = oldAvatar; // Use old avatar if no new avatar selected
+                updates.avatar = oldAvatar;
             }
             await updateDoc(userRef, updates);
 
             toast.success('Profile updated successfully!');
-            setEditing(false); // Exit editing mode
+            setEditing(false);
         } catch (error) {
             console.error('Error updating profile:', error);
             toast.error('Failed to update profile.');
@@ -89,9 +89,12 @@ function Profile({ onClose }) {
                         <img src={editing ? oldAvatar : currentUser.avatar || "./avatar.png"} alt="avatar" />
                         {editing ? (
                             <>
-                                <input type="file" onChange={handleChangeAvatar} />
+                                <input type="file" id='file' style={{ display: "none" }} onChange={handleChangeAvatar} />
+                                <label htmlFor="file" className="custom-file-input">
+                                    Change Avatar
+                                </label>
                                 <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
-                                <textarea value={newInfo} onChange={(e) => setNewInfo(e.target.value)} />
+                                <textarea className="custom-textarea" value={newInfo} onChange={(e) => setNewInfo(e.target.value)} />
                             </>
                         ) : (
                             <>
