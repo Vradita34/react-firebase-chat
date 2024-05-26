@@ -41,21 +41,27 @@
   justify-content: space-around;
   align-items: center;
   margin-top: 20px;
-}
 
-.upload-options label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-}
+  label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+  }
+  img {
+    width: 35px;
+    height: 35px;
+    transition: transform 0.3s ease;
 
-.upload-options img {
-  width: 35px;
-  height: 35px;
-}
-
-.upload-options small {
-  font-size: 14px;
-  color: #555;
+    &:hover {
+      transform: translateY(-7px);
+    }
+  }
+  small {
+    font-size: 14px;
+    color: #888;
+    &:hover {
+      color: #fff;
+    }
+  }
 }
