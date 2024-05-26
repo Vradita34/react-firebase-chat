@@ -19,12 +19,12 @@ const MediaModal = ({ onClose, onFileSelect }) => {
                 <h4>Upload File</h4>
                 <div className="upload-options">
                     <label htmlFor="document-upload">
-                        <img src="./document.gif" alt="document" />
+                        <img src="./document.png" alt="document" />
                         <input type="file" id="document-upload" style={{ display: "none" }} onChange={(e) => handleFileSelect(e, 'document')} />
                         <small>Document</small>
                     </label>
                     <label htmlFor="foto-upload">
-                        <img src="./img.png" alt="image" />
+                        <img src="./image.png" alt="image" />
                         <input type="file" id="foto-upload" style={{ display: "none" }} onChange={(e) => handleFileSelect(e, 'image')} />
                         <small>Image</small>
                     </label>
@@ -34,7 +34,7 @@ const MediaModal = ({ onClose, onFileSelect }) => {
                         <small>Video</small>
                     </label>
                     <label htmlFor="audio-upload">
-                        <img src="./audio.png" alt="audio" />
+                        <img src="./music.png" alt="audio" />
                         <input type="file" id="audio-upload" style={{ display: "none" }} onChange={(e) => handleFileSelect(e, 'audio')} />
                         <small>Audio</small>
                     </label>

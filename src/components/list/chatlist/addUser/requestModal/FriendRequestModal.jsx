@@ -113,7 +113,9 @@ const FriendRequestModal = ({ onClose }) => {
     return (
         <div className="modal">
             <div className="modal-content">
-                <span className="close" onClick={onClose}>&times;</span>
+                <span className="close" onClick={onClose}>
+                    <img src="./closered.png" alt="" />
+                </span>
                 <h2>Friend Requests</h2>
                 <div className="requests">
                     {requests.length === 0 ? (
