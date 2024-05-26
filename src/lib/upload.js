@@ -1,7 +1,7 @@
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "./firebase";
 
-const upload = async (file) => {
+const upload = async (file, onProgress) => {
     let fileType = 'others';
     if (file.type.startsWith('audio')) {
         fileType = 'audio';
@@ -22,7 +22,8 @@ const upload = async (file) => {
         uploadTask.on('state_changed',
             (snapshot) => {
                 const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                console.log('Upload is ' + progress + '% done');
+                onProgress(progress);
+                console.log(progress)
             },
             (error) => {
                 reject("Something went wrong! " + error.code);

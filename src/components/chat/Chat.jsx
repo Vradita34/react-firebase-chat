@@ -2,13 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import EmojiPicker from 'emoji-picker-react';
 import './chat.css';
 import { onSnapshot, doc, updateDoc, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { db, storage } from '../../lib/firebase';
 import { useChatStore } from '../../lib/chatStore';
 import { useUserStore } from '../../lib/userStore';
 import upload from '../../lib/upload';
 import { formatDistanceToNow } from 'date-fns';
 import Detail from './detail/Detail';
 import MediaModal from './modal/MediaModal';
+import { deleteObject, ref } from 'firebase/storage';
 
 function Chat() {
     const [chat, setChat] = useState();
@@ -26,6 +27,7 @@ function Chat() {
     const [isRecording, setIsRecording] = useState(false);
     const [mediaRecorder, setMediaRecorder] = useState(null);
     const [isFileUploadModalOpen, setIsFileUploadModalOpen] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const { currentUser } = useUserStore();
     const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, deleteChat } = useChatStore();
@@ -73,7 +75,7 @@ function Chat() {
 
         try {
             if (file) {
-                fileUrl = await upload(file);
+                fileUrl = await upload(file, (progress) => setUploadProgress(progress));
             }
 
             if (audioBlob) {
@@ -83,7 +85,14 @@ function Chat() {
 
             if (editMode) {
                 const updatedMessages = chat.messages.map(message =>
-                    message.id === editMessageId ? { ...message, text: trimmedText, ...(fileUrl && { file: fileUrl, fileType }), ...(audioUrl && { audio: audioUrl }), updatedAt: new Date() } : message
+                    message.id === editMessageId ? {
+                        ...message,
+                        text: trimmedText,
+                        ...(fileUrl && { file: fileUrl, fileType }),
+                        ...(audioUrl && { audio: audioUrl }),
+                        updatedAt: new Date(),
+                        edited: true
+                    } : message
                 );
 
                 await updateDoc(doc(db, "chats", chatId), {
@@ -162,10 +171,37 @@ function Chat() {
     };
 
     const handleDelete = async (messageId) => {
-        const updatedMessages = chat.messages.filter(message => message.id !== messageId);
-        await updateDoc(doc(db, "chats", chatId), {
-            messages: updatedMessages,
-        });
+        const messageToDelete = chat.messages.find(message => message.id === messageId);
+
+        if (!messageToDelete) {
+            console.error("Message not found");
+            return;
+        }
+
+        if (messageToDelete.file) {
+            try {
+                const fileRef = ref(storage, messageToDelete.file);
+                await deleteObject(fileRef);
+                console.log("File deleted successfully from Storage");
+            } catch (error) {
+                console.error("Error deleting file from Storage:", error);
+            }
+        }
+
+        const updatedMessages = chat.messages.map(message =>
+            message.id === messageId
+                ? { ...message, text: "pesan telah dihapus", file: null, fileType: null }
+                : message
+        );
+
+        try {
+            await updateDoc(doc(db, "chats", chatId), {
+                messages: updatedMessages,
+            });
+            console.log("Message updated to 'pesan telah dihapus' in Firestore");
+        } catch (error) {
+            console.error("Error updating message in Firestore:", error);
+        }
     };
 
     const handleBack = () => {
@@ -206,6 +242,13 @@ function Chat() {
         }
     };
 
+    const handleCancelUpload = () => {
+        setFile(null);
+        setFileType(null);
+        setFilePreview(null);
+        setUploadProgress(0);
+    };
+
     return (
         <div className='chat'>
             <div className="top">
@@ -231,6 +274,7 @@ function Chat() {
                             {message.fileType === 'image' && <img src={message.file} alt="sendImage" />}
                             {message.fileType === 'document' && <a href={message.file} target="_blank" rel="noopener noreferrer">Open Document</a>}
                             <p>{message.text}</p>
+                            {message.edited && <small style={{ fontSize: "10px", color: "#888" }}> (Pesan telah diedit) </small>}
                             {message.senderId === currentUser.id && clickedMessageId === message.id && (
                                 <div className="actions" style={{ display: showActions ? "block" : "none" }}>
                                     <button onClick={() => handleEdit(message)}>Edit</button>
@@ -248,6 +292,8 @@ function Chat() {
                             {fileType === 'audio' && <audio controls src={filePreview} />}
                             {fileType === 'document' && <a href={filePreview} target="_blank" rel="noopener noreferrer">Open Document</a>}
                             {fileType === 'image' && <img src={filePreview} alt="sendImage" />}
+                            {uploadProgress > 0 && <progress value={uploadProgress} max="100" />}
+                            <button onClick={handleCancelUpload}>Cancel Upload</button>
                         </div>
                     </div>
                 }

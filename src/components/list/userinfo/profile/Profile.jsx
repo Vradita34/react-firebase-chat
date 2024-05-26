@@ -106,6 +106,12 @@ function Profile({ onClose }) {
                     <div className="info">
                         <div className="option">
                             <div className="title">
+                                <p><span>Email :</span> {currentUser?.email}</p>
+                                <img src="./arrowUp.png" alt="arrowUp" />
+                            </div>
+                        </div>
+                        <div className="option">
+                            <div className="title">
                                 <span>Settings</span>
                                 <img src="./arrowUp.png" alt="arrowUp" />
                             </div>
@@ -113,12 +119,6 @@ function Profile({ onClose }) {
                         <div className="option">
                             <div className="title">
                                 <span>Privacy & helps</span>
-                                <img src="./arrowUp.png" alt="arrowUp" />
-                            </div>
-                        </div>
-                        <div className="option">
-                            <div className="title">
-                                <span>Shared Files</span>
                                 <img src="./arrowUp.png" alt="arrowUp" />
                             </div>
                         </div>
