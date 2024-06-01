@@ -1,31 +1,55 @@
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Chat from "./components/chat/Chat";
 import List from "./components/list/List";
-import Login from "./components/login/Login";
 import Notification from "./components/notification/Notification";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./lib/firebase";
 import { useUserStore } from "./lib/userStore";
 import { useChatStore } from "./lib/chatStore";
 import LandingPage from "./components/landingpage/LandingPage";
+import Loading from "./components/loading/Loading";
 
 const App = () => {
-  const { currentUser, isLoading, fetchUserInfo } = useUserStore();
+  const { currentUser, isLoading, fetchUserInfo, setLoading } = useUserStore();
   const { chatId } = useChatStore();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [notification, setNotification] = useState("");
 
   useEffect(() => {
     const unSub = onAuthStateChanged(auth, (user) => {
       if (user) {
         fetchUserInfo(user?.uid);
+      } else {
+        setLoading(false);
       }
     });
 
     return () => {
       unSub();
     };
-  }, [fetchUserInfo]);
+  }, [fetchUserInfo, setLoading]);
 
-  if (isLoading) return <div className="loading">Loading...</div>;
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setNotification("You are back online!");
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      setNotification("You are currently offline.");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  if (isLoading) return <Loading />;
 
   return (
     <div className='container area'>
@@ -41,6 +65,7 @@ const App = () => {
         <li></li>
         <li></li>
       </ul>
+      {notification && <div className={isOnline ? "notification online" : "notification offline"}>{notification}</div>}
       {currentUser ? (
         <>
           {!chatId && <List />}

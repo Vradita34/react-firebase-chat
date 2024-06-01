@@ -9,7 +9,17 @@ import upload from '../../lib/upload';
 import { formatDistanceToNow } from 'date-fns';
 import Detail from './detail/Detail';
 import MediaModal from './modal/MediaModal';
+import FilePreviewModal from './modal/FilePreviewModal';
 import { deleteObject, ref } from 'firebase/storage';
+
+const downloadFile = (url) => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = url.split('/').pop();
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+};
 
 function Chat() {
     const [chat, setChat] = useState();
@@ -28,6 +38,9 @@ function Chat() {
     const [mediaRecorder, setMediaRecorder] = useState(null);
     const [isFileUploadModalOpen, setIsFileUploadModalOpen] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [isFilePreviewModalOpen, setIsFilePreviewModalOpen] = useState(false);
+    const [previewFileType, setPreviewFileType] = useState(null);
+    const [previewFileUrl, setPreviewFileUrl] = useState(null);
 
     const { currentUser } = useUserStore();
     const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, deleteChat } = useChatStore();
@@ -162,6 +175,8 @@ function Chat() {
     };
 
     const handleEdit = (message) => {
+        if (message.text === "pesan telah dihapus") return;
+
         setEditMode(true);
         setEditMessageId(message.id);
         setText(message.text);
@@ -249,6 +264,12 @@ function Chat() {
         setUploadProgress(0);
     };
 
+    const handlePreview = (fileType, fileUrl) => {
+        setPreviewFileType(fileType);
+        setPreviewFileUrl(fileUrl);
+        setIsFilePreviewModalOpen(true);
+    };
+
     return (
         <div className='chat'>
             <div className="top">
@@ -258,7 +279,11 @@ function Chat() {
                     <div className="texts" onClick={() => setAddDetail((prev) => !prev)}>
                         <span>{user?.username}</span>
                         <p> {user?.info} </p>
-                        <small>{isFriendOnline ? "Sedang Online" : "Sedang Offline"}</small>
+                        {isFriendOnline ? (
+                            <small className='onlineCuy'>Sedang Online</small>
+                        ) : (
+                            <small className='offline'>Sedang Offline</small>
+                        )}
                     </div>
                 </div>
                 <div className="icons">
@@ -269,13 +294,25 @@ function Chat() {
                 {chat?.messages?.map((message) => (
                     <div className={`message ${message.senderId === currentUser.id ? 'own' : 'other'}`} key={message.id} onClick={() => handleToggleActions(message.id)} >
                         <div className="texts">
-                            {message.fileType === 'video' && <video controls src={message.file} />}
+                            {message.fileType === 'video' && (
+                                <>
+                                    <video controls src={message.file} />
+                                    <button onClick={() => handlePreview('video', message.file)}>Fullscreen</button>
+                                    <button onClick={() => downloadFile(message.file)}>Download Video</button>
+                                </>
+                            )}
                             {message.fileType === 'audio' && <audio controls src={message.file} />}
-                            {message.fileType === 'image' && <img src={message.file} alt="sendImage" />}
+                            {message.fileType === 'image' && (
+                                <>
+                                    <img src={message.file} alt="sendImage" />
+                                    <button onClick={() => handlePreview('image', message.file)}>Fullscreen</button>
+                                    <button onClick={() => downloadFile(message.file)}>Download Image</button>
+                                </>
+                            )}
                             {message.fileType === 'document' && <a href={message.file} target="_blank" rel="noopener noreferrer">Open Document</a>}
                             <p>{message.text}</p>
                             {message.edited && <small style={{ fontSize: "10px", color: "#888" }}> (Pesan telah diedit) </small>}
-                            {message.senderId === currentUser.id && clickedMessageId === message.id && (
+                            {message.senderId === currentUser.id && clickedMessageId === message.id && message.text !== "pesan telah dihapus" && (
                                 <div className="actions" style={{ display: showActions ? "block" : "none" }}>
                                     <button onClick={() => handleEdit(message)}>Edit</button>
                                     <button onClick={() => handleDelete(message.id)}>Delete</button>
@@ -312,10 +349,22 @@ function Chat() {
                         <EmojiPicker onEmojiClick={handleEmoji} open={open} />
                     </div>
                 </div>
-                <button className='sendButton' onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>{editMode ? 'Edit' : 'Send'}</button>
+                {/* <button className='sendButton' onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>{editMode ? 'Edit' : 'Send'}</button> */}
+                <button className='tombol' onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>
+                    <div className="svg-wrapper-1">
+                        <div className="svg-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="none" d="M0 0h24v24H0z"></path>
+                                <path fill="currentColor" d="M1.946 9.315c-.522-.174-.527-.455.01-.634l19.087-6.362c.529-.176.832.12.684.638l-5.454 19.086c-.15.529-.455.547-.679.045L12 14l6-8-8 6-8.054-2.685z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <span>{editMode ? 'Edit' : 'Send'}</span>
+                </button>
             </div>
             {addDetail && <Detail onClose={() => setAddDetail(false)} />}
             {isFileUploadModalOpen && <MediaModal onClose={() => setIsFileUploadModalOpen(false)} onFileSelect={handleFileSelect} />}
+            {isFilePreviewModalOpen && <FilePreviewModal fileType={previewFileType} fileUrl={previewFileUrl} onClose={() => setIsFilePreviewModalOpen(false)} />}
         </div>
     );
 }

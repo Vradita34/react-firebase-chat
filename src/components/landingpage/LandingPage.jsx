@@ -17,7 +17,8 @@ function LandingPage() {
                             <button className="button-85" role="button" onClick={() => setOpen((prev) => !prev)} >Get Started</button>
                         </div>
                         <div className="right-section">
-                            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaXhqM3Iyb3R3YW52cmRydTZsdGtpNDVtanhueTBia2ZtZHlicHRrbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26FPJGjhefSJuaRhu/giphy.gif" alt="phoneChat" />
+                            {/* <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaXhqM3Iyb3R3YW52cmRydTZsdGtpNDVtanhueTBia2ZtZHlicHRrbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26FPJGjhefSJuaRhu/giphy.gif" alt="phoneChat" /> */}
+                            <img src="./chatLandingPage.png" alt="" />
                         </div>
                     </div>
                 </div>

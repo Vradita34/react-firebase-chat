@@ -28,6 +28,12 @@ function Userinfo() {
                 <img src={currentUser.avatar || "./avatar.png"} alt="" />
                 <h2>{currentUser.username}</h2>
             </div>
+            <div className="notification">
+                <div className="bell-container">
+                    <div className="bell"></div>
+                </div>
+            </div>
+
             <div className="icons">
                 <img src="./more.png" alt="" onClick={() => setAddProfile((prev) => !prev)} />
                 <div className="message-icon-container" onClick={() => setShowFriendRequests((prev) => !prev)}>
