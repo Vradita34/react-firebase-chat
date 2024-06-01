@@ -12,15 +12,6 @@ import MediaModal from './modal/MediaModal';
 import FilePreviewModal from './modal/FilePreviewModal';
 import { deleteObject, ref } from 'firebase/storage';
 
-const downloadFile = (url) => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = url.split('/').pop();
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-};
-
 function Chat() {
     const [chat, setChat] = useState();
     const [open, setOpen] = useState(false);
@@ -270,6 +261,12 @@ function Chat() {
         setIsFilePreviewModalOpen(true);
     };
 
+    const handleTextChange = (e) => {
+        setText(e.target.value);
+        e.target.style.height = 'auto';
+        e.target.style.height = e.target.scrollHeight + 'px';
+    };
+
     return (
         <div className='chat'>
             <div className="top">
@@ -298,7 +295,6 @@ function Chat() {
                                 <>
                                     <video controls src={message.file} />
                                     <button onClick={() => handlePreview('video', message.file)}>Fullscreen</button>
-                                    <button onClick={() => downloadFile(message.file)}>Download Video</button>
                                 </>
                             )}
                             {message.fileType === 'audio' && <audio controls src={message.file} />}
@@ -306,7 +302,6 @@ function Chat() {
                                 <>
                                     <img src={message.file} alt="sendImage" />
                                     <button onClick={() => handlePreview('image', message.file)}>Fullscreen</button>
-                                    <button onClick={() => downloadFile(message.file)}>Download Image</button>
                                 </>
                             )}
                             {message.fileType === 'document' && <a href={message.file} target="_blank" rel="noopener noreferrer">Open Document</a>}
@@ -342,14 +337,19 @@ function Chat() {
                     <img src="./link.png" alt="link" onClick={() => setIsFileUploadModalOpen(true)} />
                     <img src="./mic.png" alt="mic" onClick={handleRecord} />
                 </div>
-                <input type="text" placeholder={isCurrentUserBlocked || isReceiverBlocked ? "You cannot send a message!" : "Type a message..."} value={text} onChange={(e) => setText(e.target.value)} disabled={isCurrentUserBlocked || isReceiverBlocked} />
+                <textarea
+                    placeholder={isCurrentUserBlocked || isReceiverBlocked ? "You cannot send a message!" : "Type a message..."}
+                    value={text}
+                    onChange={handleTextChange}
+                    disabled={isCurrentUserBlocked || isReceiverBlocked}
+                    className="message-textarea"
+                ></textarea>
                 <div className="emoji" onClick={() => setOpen((prev) => !prev)}>
                     <img src="./emoji.png" alt="emoji" />
                     <div className="picker">
                         <EmojiPicker onEmojiClick={handleEmoji} open={open} />
                     </div>
                 </div>
-                {/* <button className='sendButton' onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>{editMode ? 'Edit' : 'Send'}</button> */}
                 <button className='tombol' onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>
                     <div className="svg-wrapper-1">
                         <div className="svg-wrapper">

@@ -6,7 +6,7 @@
   flex-direction: column;
   background-color: rgba(17, 25, 40, 0.6);
   border-radius: 10px;
-  overflow: hidden; /* Ensure content doesn't overflow */
+  overflow: hidden;
 
   .top {
     padding: 5px;
@@ -67,8 +67,8 @@
     padding: 10px;
     flex: 1;
     overflow-y: auto;
-    scroll-behavior: smooth; /* Ensures smooth scrolling */
-    scrollbar-width: thin; /* Makes the scrollbar thinner */
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -105,7 +105,7 @@
         img,
         video {
           width: 100%;
-          max-height: 300px; /* Set a maximum height */
+          max-height: 300px;
           border-radius: 10px 10px 0px 0px;
           object-fit: cover;
         }
@@ -149,7 +149,7 @@
       cursor: pointer;
     }
 
-    input {
+    .message-textarea {
       flex: 1;
       background-color: rgba(17, 25, 40, 0.5);
       border: none;
@@ -158,6 +158,10 @@
       padding: 10px;
       border-radius: 10px;
       font-size: 16px;
+      resize: none;
+      overflow-y: hidden;
+      min-height: 40px;
+      max-height: 200px;
       &:disabled {
         cursor: not-allowed;
       }
@@ -186,7 +190,7 @@
       }
     }
 
-    button {
+    .tombol {
       font-family: inherit;
       font-size: 18px;
       background: linear-gradient(to bottom, #4dc7d9 0%, #66a6ff 100%);
@@ -259,9 +263,9 @@
 /* Media Queries for Responsive Design */
 @media (max-width: 768px) {
   .chat {
-    flex: 1; /* Make sure it occupies available space */
-    border: none; /* Remove borders on small screens */
-    border-radius: 0; /* Remove border-radius */
+    flex: 1;
+    border: none;
+    border-radius: 0;
 
     .top {
       padding: 5px;
@@ -273,32 +277,32 @@
       .user {
         display: flex;
         align-items: center;
-        gap: 10px; /* Reduced gap */
+        gap: 10px;
 
         img {
-          width: 40px; /* Reduced size */
-          height: 40px; /* Reduced size */
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           object-fit: cover;
         }
         .texts {
           display: flex;
           flex-direction: column;
-          gap: 5px; /* Reduced gap */
+          gap: 5px;
 
           .span {
-            font-size: 12px; /* Reduced font size */
+            font-size: 12px;
             font-weight: bold;
           }
 
           p {
-            font-size: 10px; /* Reduced font size */
+            font-size: 10px;
             font-weight: 300;
             color: #a5a5a5;
           }
           small {
-            font-size: 10px; /* Reduced font size */
-            &.online {
+            font-size: 10px;
+            &.onlineCuy {
               color: #39ff14;
             }
             &.offline {
@@ -309,11 +313,11 @@
       }
       .icons {
         display: flex;
-        gap: 10px; /* Reduced gap */
+        gap: 10px;
 
         img {
-          width: 16px; /* Reduced size */
-          height: 16px; /* Reduced size */
+          width: 16px;
+          height: 16px;
         }
       }
     }
@@ -324,7 +328,7 @@
 
       .message .texts img,
       .message .texts video {
-        max-height: 200px; /* Reduced max-height for smaller screens */
+        max-height: 200px;
       }
     }
 
@@ -341,9 +345,13 @@
         height: 16px;
       }
 
-      input {
+      audio {
+        width: 100px;
+        height: 24px;
+      }
+
+      .message-textarea {
         padding: 8px;
-        width: 0;
         font-size: 14px;
       }
 
@@ -351,22 +359,22 @@
         padding: 5px 10px;
       }
 
-      button {
+      .tombol {
         font-size: 16px;
         padding: 0.6em 1em;
       }
 
-      button .svg-wrapper {
+      .tombol .svg-wrapper {
         width: 24px;
         height: 24px;
       }
 
-      button:hover .svg-wrapper {
+      .tombol:hover .svg-wrapper {
         width: 40px;
         height: 40px;
       }
 
-      button:hover svg {
+      .tombol:hover svg {
         width: 20px;
         height: 20px;
       }
