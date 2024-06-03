@@ -8,7 +8,6 @@
 
 body {
   background-image: url("/bg.jpg");
-  /* animation: gradient 35s ease infinite; */
   background-size: cover;
   height: 100vh;
   display: flex;
@@ -153,6 +152,7 @@ body {
   width: 82vw;
   height: 95vh;
   background-color: transparent;
+  /* background-color: rgba(0, 0, 0, 0.05); */
   backdrop-filter: blur(19px) saturate(180%);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.125);

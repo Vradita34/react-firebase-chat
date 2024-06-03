@@ -3,11 +3,12 @@ import Chat from "./components/chat/Chat";
 import List from "./components/list/List";
 import Notification from "./components/notification/Notification";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./lib/firebase";
+import { auth, db } from "./lib/firebase";
 import { useUserStore } from "./lib/userStore";
 import { useChatStore } from "./lib/chatStore";
 import LandingPage from "./components/landingpage/LandingPage";
 import Loading from "./components/loading/Loading";
+import { ref, onValue, set } from "firebase/database"; // Import necessary functions
 
 const App = () => {
   const { currentUser, isLoading, fetchUserInfo, setLoading } = useUserStore();
@@ -19,6 +20,20 @@ const App = () => {
     const unSub = onAuthStateChanged(auth, (user) => {
       if (user) {
         fetchUserInfo(user?.uid);
+        // Update user's online status in the database
+        const userStatusRef = ref(db, `/status/${user.uid}`);
+        set(userStatusRef, { online: true });
+
+        // Listen for changes to the user's status
+        onValue(userStatusRef, (snapshot) => {
+          if (snapshot.val().online) {
+            setIsOnline(true);
+            setNotification("Your friend is online!");
+          } else {
+            setIsOnline(false);
+            setNotification("Your friend is offline.");
+          }
+        });
       } else {
         setLoading(false);
       }

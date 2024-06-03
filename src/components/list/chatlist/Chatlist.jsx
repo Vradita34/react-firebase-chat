@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import './chatlist.css';
 import AddUser from './addUser/AddUser';
 import { useUserStore } from "../../../lib/userStore";
-import { doc, getDoc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
 import { useChatStore } from '../../../lib/chatStore';
+import TextLimiter from './textLimiter/TextLimiter';
 
 function Chatlist() {
     const [chats, setChats] = useState([]);
     const [addMode, setAddMode] = useState(false);
-
     const [input, setInput] = useState('');
 
     const { currentUser } = useUserStore();
@@ -20,7 +20,6 @@ function Chatlist() {
             const data = res.data();
             if (data) {
                 const items = data.chats || [];
-
                 const promises = items.map(async (item) => {
                     const userDocRef = doc(db, "users", item.receiverId);
                     const userDocSnap = await getDoc(userDocRef);
@@ -29,7 +28,6 @@ function Chatlist() {
                 });
 
                 const chatData = await Promise.all(promises);
-
                 if (chatData) {
                     chatData.sort((a, b) => b.updateAt - a.updateAt);
                     setChats(chatData);
@@ -43,24 +41,17 @@ function Chatlist() {
     }, [currentUser.id]);
 
     const handleSelect = async (chat) => {
-        const userChats = chats.map((item) => {
+        const updatedChats = chats.map((item) => {
             const { user, ...rest } = item;
             return rest;
         });
 
-        const chatIndex = userChats.findIndex(
-            (item) => item.chatId === chat.chatId
-        );
-
+        const chatIndex = updatedChats.findIndex((item) => item.chatId === chat.chatId);
         if (chatIndex !== -1) {
-            userChats[chatIndex].isSeen = true;
-
+            updatedChats[chatIndex].isSeen = true;
             const userChatRef = doc(db, "userchats", currentUser.id);
-
             try {
-                await updateDoc(userChatRef, {
-                    chats: userChats,
-                });
+                await updateDoc(userChatRef, { chats: updatedChats });
                 changeChat(chat.chatId, chat.user);
             } catch (error) {
                 console.error(error);
@@ -88,7 +79,7 @@ function Chatlist() {
                     <img src={chat.user?.blocked?.includes(currentUser.id) ? "./avatar.png" : chat.user?.avatar || "./avatar.png"} alt="user" />
                     <div className="texts">
                         <span>{chat.user?.blocked?.includes(currentUser.id) ? "user" : chat.user?.username}</span>
-                        <p>{chat.lastMessage}</p>
+                        <TextLimiter text={chat.lastMessage} limit={50} />
                     </div>
                 </div>
             ))}
