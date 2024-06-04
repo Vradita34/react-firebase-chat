@@ -6,6 +6,7 @@ import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
 import { useChatStore } from '../../../lib/chatStore';
 import TextLimiter from './textLimiter/TextLimiter';
+import useOnlineStatus from '../../../hooks/onlineStatus';  
 
 function Chatlist() {
     const [chats, setChats] = useState([]);
@@ -14,6 +15,8 @@ function Chatlist() {
 
     const { currentUser } = useUserStore();
     const { chatId, changeChat } = useChatStore();
+
+    useOnlineStatus();
 
     useEffect(() => {
         const unSub = onSnapshot(doc(db, "userchats", currentUser.id), async (res) => {

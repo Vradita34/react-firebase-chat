@@ -12,6 +12,7 @@ import MediaModal from './modal/MediaModal';
 import FilePreviewModal from './modal/FilePreviewModal';
 import { deleteObject, ref } from 'firebase/storage';
 import { linkify } from '../../lib/utils';
+import useOnlineStatus from '../../hooks/onlineStatus';
 
 function Chat() {
     const [chat, setChat] = useState();
@@ -39,6 +40,8 @@ function Chat() {
     const endRef = useRef(null);
     const [isFriendOnline, setIsFriendOnline] = useState(false);
 
+    useOnlineStatus();
+
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [chat?.messages]);
@@ -65,43 +68,6 @@ function Chat() {
             unsubscribe();
         };
     }, [user.id]);
-
-    useEffect(() => {
-        const handleVisibilityChange = async () => {
-            if (document.visibilityState === 'visible') {
-                await updateDoc(doc(db, "users", currentUser.id), {
-                    isOnline: true,
-                });
-            } else {
-                await updateDoc(doc(db, "users", currentUser.id), {
-                    isOnline: false,
-                });
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-
-        // Set online status when the component mounts
-        const setOnline = async () => {
-            await updateDoc(doc(db, "users", currentUser.id), {
-                isOnline: true,
-            });
-        };
-
-        setOnline();
-
-        return () => {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            // Set offline status when the component unmounts
-            const setOffline = async () => {
-                await updateDoc(doc(db, "users", currentUser.id), {
-                    isOnline: false,
-                });
-            };
-
-            setOffline();
-        };
-    }, [currentUser.id]);
 
     const handleEmoji = (e) => {
         setText((prev) => prev + e.emoji);
@@ -309,7 +275,6 @@ function Chat() {
         <div className='chat'>
             <div className="top">
                 <div className="user">
-                    {/* <img src="./back.png" alt="back" onClick={handleBack} /> */}
                     <button onClick={handleBack} className="button">
                         <div className="button-box">
                             <span className="button-elem">
@@ -362,7 +327,6 @@ function Chat() {
                                 </>
                             )}
                             {message.fileType === 'document' && <a href={message.file} target="_blank" rel="noopener noreferrer">Open Document</a>}
-                            {/* <p>{message.text}</p> */}
                             <p dangerouslySetInnerHTML={{ __html: linkify(message.text) }}></p>
                             {message.edited && <small style={{ fontSize: "10px", color: "#888" }}> (Pesan telah diedit) </small>}
                             {message.senderId === currentUser.id && clickedMessageId === message.id && message.text !== "pesan telah dihapus" && (
