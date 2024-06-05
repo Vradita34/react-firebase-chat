@@ -22,6 +22,14 @@ function Userinfo() {
         return () => unsubscribe();
     }, [currentUser.id]);
 
+    const handleProfileClick = () => {
+        setAddProfile(prev => !prev);
+    };
+
+    const handleFriendRequestsClick = () => {
+        setShowFriendRequests(prev => !prev);
+    };
+
     return (
         <div className='userinfo'>
             <div className="user">
@@ -35,8 +43,8 @@ function Userinfo() {
             </div>
 
             <div className="icons">
-                <img src="./more.png" alt="" onClick={() => setAddProfile((prev) => !prev)} />
-                <div className="message-icon-container" onClick={() => setShowFriendRequests((prev) => !prev)}>
+                <img src="./user.png" alt="" onClick={handleProfileClick} />
+                <div className="message-icon-container" onClick={handleFriendRequestsClick}>
                     <img src="./message.png" alt="" />
                     {requestCount > 0 && <span className="badge">{requestCount}</span>}
                 </div>

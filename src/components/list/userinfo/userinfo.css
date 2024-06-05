@@ -3,44 +3,47 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  overflow: hidden;
+  scrollbar-width: none;
+}
 
-  .user {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+.user {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
 
-    img {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-  }
+.user img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .icons {
   display: flex;
   align-items: center;
   gap: 20px;
+}
 
-  img {
-    width: 25px;
-    height: 25px;
-    cursoer: pointer;
-  }
+.icons img {
+  width: 25px;
+  height: 25px;
+  cursor: pointer; /* Fixed typo */
+}
 
-  .message-icon-container {
-    position: relative;
-    display: inline-block;
-  }
-  .badge {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background-color: red;
-    color: white;
-    border-radius: 50%;
-    padding: 0px 2px;
-    font-size: 15px;
-  }
+.message-icon-container {
+  position: relative;
+  display: inline-block;
+}
+
+.badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 0px 2px;
+  font-size: 15px;
 }

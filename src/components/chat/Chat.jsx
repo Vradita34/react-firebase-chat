@@ -168,9 +168,16 @@ function Chat() {
         setFileType(type);
         setFilePreview(URL.createObjectURL(selectedFile));
     };
+    const canEditMessage = (message) => {
+        const fifteenMinutes = 15 * 60 * 1000;
+        return Date.now() - message.createdAt.toDate().getTime() <= fifteenMinutes;
+    };
 
     const handleEdit = (message) => {
-        if (message.text === "pesan telah dihapus") return;
+        const fifteenMinutes = 15 * 60 * 1000;
+        const timeDifference = Date.now() - message.createdAt.toDate().getTime();
+
+        if (timeDifference > fifteenMinutes || message.text === "pesan telah dihapus") return;
 
         setEditMode(true);
         setEditMessageId(message.id);
@@ -271,6 +278,19 @@ function Chat() {
         e.target.style.height = e.target.scrollHeight + 'px';
     };
 
+    const isCodeSnippet = (text) => {
+        const codeKeywords = ['function', 'const', 'let', 'var', 'if', 'else', 'class', 'return', 'import', 'export', 'html', 'meta', 'style', 'body'];
+        return codeKeywords.some(keyword => text.includes(keyword));
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Text copied to clipboard!");
+        }).catch((error) => {
+            console.error("Could not copy text: ", error);
+        });
+    };
+
     return (
         <div className='chat'>
             <div className="top">
@@ -327,11 +347,22 @@ function Chat() {
                                 </>
                             )}
                             {message.fileType === 'document' && <a href={message.file} target="_blank" rel="noopener noreferrer">Open Document</a>}
-                            <p dangerouslySetInnerHTML={{ __html: linkify(message.text) }}></p>
+                            {isCodeSnippet(message.text) ? (
+                                <div className='cardCode'>
+                                    <pre>
+                                        <code className="hljs">
+                                            {message.text}
+                                        </code>
+                                    </pre>
+                                </div>
+                            ) : (
+                                <p dangerouslySetInnerHTML={{ __html: linkify(message.text) }}></p>
+                            )}
                             {message.edited && <small style={{ fontSize: "10px", color: "#888" }}> (Pesan telah diedit) </small>}
                             {message.senderId === currentUser.id && clickedMessageId === message.id && message.text !== "pesan telah dihapus" && (
                                 <div className="actions" style={{ display: showActions ? "block" : "none" }}>
-                                    <button onClick={() => handleEdit(message)}>Edit</button>
+                                    {canEditMessage(message) && <button onClick={() => handleEdit(message)}>Edit</button>}
+                                    <button onClick={() => copyToClipboard(message.text)}>Copy</button>
                                     <button onClick={() => handleDelete(message.id)}>Delete</button>
                                 </div>
                             )}
@@ -357,7 +388,7 @@ function Chat() {
                 <div className="icons">
                     <input type="file" id='file' style={{ display: "none" }} />
                     <img src="./link.png" alt="link" onClick={() => setIsFileUploadModalOpen(true)} />
-                    <img src="./mic.png" alt="mic" onClick={handleRecord} />
+                    {/* <img src="./mic.png" alt="mic" onClick={handleRecord} /> */}
                 </div>
                 <textarea
                     placeholder={isCurrentUserBlocked || isReceiverBlocked ? "You cannot send a message!" : "Type a message..."}

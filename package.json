@@ -13,6 +13,7 @@
     "date-fns": "^3.6.0",
     "emoji-picker-react": "^4.9.2",
     "firebase": "^10.11.1",
+    "highlight.js": "^11.9.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.1",

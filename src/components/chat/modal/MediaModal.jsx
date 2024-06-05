@@ -38,6 +38,11 @@ const MediaModal = ({ onClose, onFileSelect }) => {
                         <input type="file" id="audio-upload" style={{ display: "none" }} onChange={(e) => handleFileSelect(e, 'audio')} />
                         <small>Audio</small>
                     </label>
+                    <label htmlFor="encrypted-upload">
+                        <img src="./zip.png" alt="encrypted" />
+                        <input type="file" id="encrypted-upload" style={{ display: "none" }} onChange={(e) => handleFileSelect(e, 'encrypted')} />
+                        <small>File Encrypted</small>
+                    </label>
                 </div>
             </div>
         </div>

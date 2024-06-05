@@ -8,7 +8,11 @@ const upload = async (file, onProgress) => {
     } else if (file.type.startsWith('video')) {
         fileType = 'video';
     } else if (file.type.startsWith('application')) {
-        fileType = 'document';
+        if (file.name.endsWith('.zip') || file.name.endsWith('.rar') || file.name.endsWith('.jar')) {
+            fileType = 'file'; // Store encrypted files in the 'file' folder
+        } else {
+            fileType = 'document';
+        }
     } else if (file.type.startsWith('image')) {
         fileType = 'image';
     }

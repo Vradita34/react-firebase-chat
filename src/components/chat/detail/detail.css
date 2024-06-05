@@ -10,6 +10,8 @@
     align-items: center;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
+    overflow: hidden;
+    scrollbar-width: none;
   }
 
   .modal-content {
@@ -23,7 +25,6 @@
 
     .modal-header {
       display: flex;
-      /* align-self: flex-end; */
       align-items: center;
       cursor: pointer;
     }
