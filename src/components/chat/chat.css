@@ -253,6 +253,7 @@
       font-size: 16px;
       resize: none;
       overflow-y: hidden;
+      height: 40px;
       min-height: 40px;
       max-height: 200px;
       &:disabled {

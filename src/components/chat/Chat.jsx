@@ -38,6 +38,7 @@ function Chat() {
     const { currentUser } = useUserStore();
     const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, deleteChat } = useChatStore();
     const endRef = useRef(null);
+    const textareaRef = useRef(null);
     const [isFriendOnline, setIsFriendOnline] = useState(false);
 
     useOnlineStatus();
@@ -161,7 +162,13 @@ function Chat() {
         setFilePreview(null);
         setAudioBlob(null);
         setText("");
+        resetTextareaHeight();
     };
+
+    const resetTextareaHeight = () => {
+        textareaRef.current.style.height = '40px';
+    };
+
 
     const handleFileSelect = (selectedFile, type) => {
         setFile(selectedFile);
@@ -396,6 +403,7 @@ function Chat() {
                     onChange={handleTextChange}
                     disabled={isCurrentUserBlocked || isReceiverBlocked}
                     className="message-textarea"
+                    ref={textareaRef} // Attach the ref to the textarea
                 ></textarea>
                 <div className="emoji" onClick={() => setOpen((prev) => !prev)}>
                     <img src="./emoji.png" alt="emoji" />
