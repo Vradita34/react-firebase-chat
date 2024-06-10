@@ -354,6 +354,7 @@ function Chat() {
                                 </>
                             )}
                             {message.fileType === 'document' && <a href={message.file} target="_blank" rel="noopener noreferrer">Open Document</a>}
+                            {message.fileType === 'encrypted' && <a href={message.file} target="_blank" rel="noopener noreferrer">Open Encrypted File</a>}
                             {isCodeSnippet(message.text) ? (
                                 <div className='cardCode'>
                                     <pre>
@@ -384,6 +385,7 @@ function Chat() {
                             {fileType === 'audio' && <audio controls src={filePreview} />}
                             {fileType === 'document' && <a href={filePreview} target="_blank" rel="noopener noreferrer">Open Document</a>}
                             {fileType === 'image' && <img src={filePreview} alt="sendImage" />}
+                            {fileType === 'encrypted' && <a href={filePreview} target="_blank" rel="noopener noreferrer">Open Encrypted File</a>}
                             {uploadProgress > 0 && <progress value={uploadProgress} max="100" />}
                             <button onClick={handleCancelUpload}>Cancel Upload</button>
                         </div>
