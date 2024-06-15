@@ -15,6 +15,6 @@ https://react-firebase-chat-swart.vercel.app/
 
 - Forgot password
 - Block Chat
-- Send Dokumen,Image,Video,Audio
+- Send Dokumen,Image,Video,Audio,File enncrypt
 - Friend Request
 
