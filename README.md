@@ -6,7 +6,10 @@
 
 
 ## Preview 
-[![Sf14y.png](https://s10.gifyu.com/images/Sf14y.png)](https://gifyu.com/image/Sf14y)
+[![SY1Wy.png](https://s10.gifyu.com/images/SY1Wy.png)](https://gifyu.com/image/SY1Wy)
+## Demo
+
+https://react-firebase-chat-swart.vercel.app/
 
 ## Features
 
